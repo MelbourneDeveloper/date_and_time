@@ -1,39 +1,120 @@
-<!-- 
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+# date_and_time
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/tools/pub/writing-package-pages). 
+This package provides `Date` and `Time` types they are clean immutable types without the complexity of `DateTime`.
 
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/to/develop-packages). 
--->
+## Why Separate Date and Time?
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+Dates and times usually serve distinct purposes and we often use them independently. So, it doesn't make sense to smash them together by default. Changing the time of a `DateTime` means making a copy of both and replacing the time, while changing the date of the `DateTime` also means copying both and replace the date. This is very onerous and makes code more confusing. 
+
+The other sweetener is that if you use `Date.today()`  or `Time.now()`, you can easily mock the time in your tests. Mocking time in Flutter apps that depend heavily on time is very onerous because using once instance of `DateTime.now()` will make your tests flaky and hard to diagnose.
+
+### Dates
+Represent calendar days (birthdays, holidays, deadlines) where the time is irrelevant.
+
+### Times 
+Represent a point in time for any date. 
+
+Using `DateTime` for these cases:
+- Adds unnecessary complexity
+- Makes comparison logic more complicated
+- Makes it harder to serialize/deserialize when you only need one component
+- Makes it harder change one value without changing the other
+
+This package provides two extension types that solve these problems:
+- `Date` - For working with calendar dates
+- `Time` - For working with times of day
 
 ## Features
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+- ✨ Pure immutable types
+- 🎯 Intuitive API design
+- 🔄 Easy conversion to and from strings
+- 🧮 Date arithmetic and time comparison
+- 🌍 Time zone independent (note that you still need to be aware of the timezone you are working with)
 
-## Getting started
+## Getting Started
 
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+Install the package according the "Installing" tab here on Pub Dev.
 
 ## Usage
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder. 
+### Working with Dates
 
 ```dart
-const like = 'sample';
+// Get today's date
+final today = Date.today();
+
+// Parse from string
+final birthday = Date.tryParse('1990-04-15');
+
+// Create from values
+final date = Date.fromValues(year: 2024, month: 3, day: 15);
+
+// Access components
+print(date.year);    // 2024
+print(date.month);   // 3
+print(date.day);     // 15
+print(date.weekday); // 5 (Friday)
+
+// Date arithmetic
+final tomorrow = date.add(Duration(days: 1));
+final yesterday = date.subtract(Duration(days: 1));
+
+// ISO 8601 formatting
+print(date.toIso8601String()); // 2024-03-15
 ```
 
-## Additional information
+### Working with Times
 
-TODO: Tell users more about the package: where to find more information, how to 
-contribute to the package, how to file issues, what response they can expect 
-from the package authors, and more.
+```dart
+// Get current time
+final now = Time.now();
+
+// Create from values
+final time = Time.fromValues(hour: 14, minute: 30, second: 15);
+
+// Access components
+print(time.hour);         // 14
+print(time.minute);       // 30
+print(time.second);       // 15
+print(time.totalSeconds); // 52215
+
+// Parse from string
+final parsed = Time.tryParse('14:30:15');
+
+// Compare times
+final meetingTime = Time.fromValues(hour: 14, minute: 30);
+final isLater = meetingTime.compareTo(now) > 0;
+
+// ISO 8601 formatting
+print(time.toIso8601String()); // 14:30:15
+```
+
+## Testing Support
+
+The package includes Zone-based time control for testing. This allows you to provide custom implementations of the current date and time:
+
+```dart
+void main() {
+  test('custom time test', () {
+    final customTime = DateTime(2024, 1, 1, 12, 0);
+    
+    runZoned(
+      () {
+        final now = Time.now();
+        expect(now.hour, equals(12));
+        expect(now.minute, equals(0));
+      },
+      zoneValues: {nowKey: () => customTime},
+    );
+  });
+}
+```
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+
+## License
+
+This project is licensed under the BSD-3 License - see the [LICENSE](LICENSE) file for details.
