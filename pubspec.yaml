@@ -1,7 +1,7 @@
 name: date_and_time
 description: Clean, immutable Date and Time types. Separate types without the complexity of DateTime.
 version: 0.0.1-alpha
-repository: https://github.com/yourusername/date_and_time
+repository: https://github.com/MelbourneDeveloper/date_and_time
 
 environment:
   sdk: '>=3.3.0 <4.0.0'
