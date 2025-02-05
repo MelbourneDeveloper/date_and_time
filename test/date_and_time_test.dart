@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:date_and_time/library.dart';
 import 'package:test/test.dart';
 
@@ -363,6 +365,80 @@ void main() {
         timeOnlyBefore.compareTo(timeOnlyAfter),
         -3660, // 1 hour and 1 minute difference in seconds
       );
+    });
+  });
+
+  group('Zone-based time mocking', () {
+    test('Date.today() can be mocked with zones', () {
+      final mockDate = DateTime(2024, 3, 15);
+
+      runZoned(
+        () {
+          final today = Date.today();
+          expect(today.year, equals(2024));
+          expect(today.month, equals(3));
+          expect(today.day, equals(15));
+        },
+        zoneValues: {nowKey: () => mockDate},
+      );
+    });
+
+    test('Time.now() can be mocked with zones', () {
+      final mockTime = DateTime(2000, 1, 1, 14, 30, 15);
+
+      runZoned(
+        () {
+          final now = Time.now();
+          expect(now.hour, equals(14));
+          expect(now.minute, equals(30));
+          expect(now.second, equals(15));
+        },
+        zoneValues: {nowKey: () => mockTime},
+      );
+    });
+
+    test('Date and Time can be mocked simultaneously', () {
+      final mockDateTime = DateTime(2024, 3, 15, 14, 30, 15);
+
+      runZoned(
+        () {
+          final today = Date.today();
+          final now = Time.now();
+
+          // Date assertions
+          expect(today.year, equals(2024));
+          expect(today.month, equals(3));
+          expect(today.day, equals(15));
+
+          // Time assertions
+          expect(now.hour, equals(14));
+          expect(now.minute, equals(30));
+          expect(now.second, equals(15));
+        },
+        zoneValues: {nowKey: () => mockDateTime},
+      );
+    });
+
+    test('Zone mocking does not affect other zones', () {
+      final mockDateTime = DateTime(2024, 3, 15, 14, 30);
+      final realNow = DateTime.now();
+
+      // Run in a zone with mocked time
+      runZoned(
+        () {
+          final mockedDate = Date.today();
+          expect(mockedDate.year, equals(2024));
+          expect(mockedDate.month, equals(3));
+          expect(mockedDate.day, equals(15));
+        },
+        zoneValues: {nowKey: () => mockDateTime},
+      );
+
+      // Outside the zone should use real time
+      final unmockedDate = Date.today();
+      expect(unmockedDate.year, equals(realNow.year));
+      expect(unmockedDate.month, equals(realNow.month));
+      expect(unmockedDate.day, equals(realNow.day));
     });
   });
 }
