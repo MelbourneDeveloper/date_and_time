@@ -8,7 +8,7 @@
             "name": "date_and_time",
             "request": "launch",
             "type": "dart",
-            "program": "example/bin/date_and_time_example.dart"
+            "program": "example/date_and_time_example.dart"
         }
     ]
 }
