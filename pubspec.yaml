@@ -1,6 +1,6 @@
 name: date_and_time
 description: A starting point for Dart libraries or applications.
-version: 1.0.0
+version: 0.0.1-alpha
 
 environment:
   sdk: ^3.6.1
@@ -8,5 +8,6 @@ environment:
 dependencies:
 
 dev_dependencies:
+  austerity: ^1.2.0
   lints: ^5.0.0
   test: ^1.24.0

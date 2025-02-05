@@ -23,12 +23,14 @@ extension type Date._(DateTime _dateTime) {
         _ => Date(DateTime.now()),
       };
 
+  /// Parses an ISO 8601 date string, returning null if the string is invalid
   static Date? tryParse(String isoString) =>
       switch (DateTime.tryParse(isoString)) {
         final DateTime dateTime => Date(dateTime),
         _ => null
       };
 
+  /// The minimum possible Date value (0001-01-01)
   static Date minValue = Date(DateTime(1));
 
   /// The year component of the date
@@ -51,7 +53,8 @@ extension type Date._(DateTime _dateTime) {
 
   /// Converts this Date to an ISO 8601 string
   String toIso8601String() =>
-      '${year.toString().padLeft(4, '0')}-${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}';
+      '${year.toString().padLeft(4, '0')}-${month.toString().padLeft(2, '0')}'
+      '-${day.toString().padLeft(2, '0')}';
 }
 
 /// An immutable type representing a time of day without date components
@@ -65,7 +68,8 @@ extension type Time._(DateTime _dateTime) {
   Time.fromValues({required int hour, required int minute, int second = 0})
       : _dateTime = DateTime(0, 1, 1, hour, minute, second);
 
-  /// Creates a Time representing the current time, using Zone-provided time if available
+  /// Creates a Time representing the current time, using Zone-provided time 
+  /// if available
   factory Time.now() => switch (Zone.current[nowKey]) {
         final Now now => Time(now()),
         _ => Time(DateTime.now()),
@@ -125,5 +129,7 @@ extension type Time._(DateTime _dateTime) {
 
   /// Converts this Time to an ISO 8601 string
   String toIso8601String() =>
-      '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}:${second.toString().padLeft(2, '0')}';
+      '${hour.toString().padLeft(2, '0')}:'
+      '${minute.toString().padLeft(2, '0')}:'
+      '${second.toString().padLeft(2, '0')}';
 }
