@@ -30,7 +30,10 @@ This package provides two extension types that solve these problems:
 - 🎯 Intuitive API design
 - 🔄 Easy conversion to and from strings
 - 🧮 Date arithmetic and time comparison
-- 🌍 Time zone independent (note that you still need to be aware of the timezone you are working with)
+
+## Timezone
+
+This library is currently timzone agnostic, but the next version will probably default to UTC. This is because using UTC is generally safer and local timezone should generally only be used for display purposes. Please reach out if you think there is a reason not to go ahead with this.
 
 ## Getting Started
 

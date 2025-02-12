@@ -316,7 +316,7 @@ void main() {
           ]);
     });
 
-    test('Parses times correctly', () {
+    test('parses times correctly', () {
       // Valid formats
       expect(Time.tryParse('10:00'), Time.fromValues(hour: 10, minute: 0));
       expect(
