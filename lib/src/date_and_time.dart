@@ -96,13 +96,19 @@ extension type Time._(DateTime _dateTime) {
           int.tryParse(minute),
           second != null ? int.tryParse(second) : null,
         )) {
-          (final int hour, final int minute, final int second) =>
+          (final int hour, final int minute, final int second)
+              when _isValid(hour, minute, second) =>
             Time.fromValues(
               hour: hour,
               minute: minute,
               second: second,
             ),
-          (final int hour, final int minute, _) => Time.fromValues(
+          (final int hour, final int minute, final int second)
+              when !_isValid(hour, minute, second) =>
+            null,
+          (final int hour, final int minute, _)
+              when _isValid(hour, minute, 0) =>
+            Time.fromValues(
               hour: hour,
               minute: minute,
             ),
@@ -110,6 +116,14 @@ extension type Time._(DateTime _dateTime) {
         },
     };
   }
+
+  static bool _isValid(int hour, int minute, int second) =>
+      hour >= 0 &&
+      hour < 24 &&
+      minute >= 0 &&
+      minute < 60 &&
+      second >= 0 &&
+      second < 60;
 
   /// The hour component of the time (0-23)
   int get hour => _dateTime.hour;

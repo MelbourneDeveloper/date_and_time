@@ -317,22 +317,80 @@ void main() {
     });
 
     test('Parses times correctly', () {
-      //TODO: need to validate against invalid inputs
-
+      // Valid formats
       expect(Time.tryParse('10:00'), Time.fromValues(hour: 10, minute: 0));
       expect(
         Time.tryParse('10:00:11'),
-        Time.fromValues(
-          hour: 10,
-          minute: 0,
-          second: 11,
-        ),
+        Time.fromValues(hour: 10, minute: 0, second: 11),
         reason: 'Should allow hours, minutes and seconds',
       );
+      expect(
+        Time.tryParse('23:59:59'),
+        Time.fromValues(hour: 23, minute: 59, second: 59),
+        reason: 'Should handle end of day time',
+      );
+      expect(
+        Time.tryParse('00:00:00'),
+        Time.fromValues(hour: 0, minute: 0),
+        reason: 'Should handle midnight',
+      );
+      expect(
+        Time.tryParse('09:05:02'),
+        Time.fromValues(hour: 9, minute: 5, second: 2),
+        reason: 'Should handle leading zeros',
+      );
+
+      // Invalid formats
       expect(
         Time.tryParse('10'),
         null,
         reason: 'Should not allow only hours',
+      );
+      expect(
+        Time.tryParse('24:00:00'),
+        null,
+        reason: 'Should not allow 24 hours',
+      );
+      expect(
+        Time.tryParse('23:60:00'),
+        null,
+        reason: 'Should not allow 60 minutes',
+      );
+      expect(
+        Time.tryParse('23:59:60'),
+        null,
+        reason: 'Should not allow 60 seconds',
+      );
+      expect(
+        Time.tryParse('-1:00:00'),
+        null,
+        reason: 'Should not allow negative hours',
+      );
+      expect(
+        Time.tryParse('abc'),
+        null,
+        reason: 'Should not allow non-numeric input',
+      );
+      expect(
+        Time.tryParse('10:aa:00'),
+        null,
+        reason: 'Should not allow non-numeric components',
+      );
+      //TODO: decide what to do here
+      // expect(
+      //   Time.tryParse('10:00:'),
+      //   null,
+      //   reason: 'Should not allow trailing colon',
+      // );
+      expect(
+        Time.tryParse(':10:00'),
+        null,
+        reason: 'Should not allow leading colon',
+      );
+      expect(
+        Time.tryParse(''),
+        null,
+        reason: 'Should not allow empty string',
       );
     });
   });
