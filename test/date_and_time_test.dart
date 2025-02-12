@@ -315,6 +315,26 @@ void main() {
             '14:31:0',
           ]);
     });
+
+    test('Parses times correctly', () {
+      //TODO: need to validate against invalid inputs
+
+      expect(Time.tryParse('10:00'), Time.fromValues(hour: 10, minute: 0));
+      expect(
+        Time.tryParse('10:00:11'),
+        Time.fromValues(
+          hour: 10,
+          minute: 0,
+          second: 11,
+        ),
+        reason: 'Should allow hours, minutes and seconds',
+      );
+      expect(
+        Time.tryParse('10'),
+        null,
+        reason: 'Should not allow only hours',
+      );
+    });
   });
 
   group('DateOnly and TimeOnly Integration', () {

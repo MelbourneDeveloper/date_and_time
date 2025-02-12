@@ -68,7 +68,7 @@ extension type Time._(DateTime _dateTime) {
   Time.fromValues({required int hour, required int minute, int second = 0})
       : _dateTime = DateTime(0, 1, 1, hour, minute, second);
 
-  /// Creates a Time representing the current time, using Zone-provided time 
+  /// Creates a Time representing the current time, using Zone-provided time
   /// if available
   factory Time.now() => switch (Zone.current[nowKey]) {
         final Now now => Time(now()),
@@ -83,16 +83,18 @@ extension type Time._(DateTime _dateTime) {
       return null;
     }
 
-    return switch ((time[0], time[1], time[2])) {
+    final time3 = time.length > 2 ? time[2] : null;
+
+    return switch ((time[0], time[1], time3)) {
       (
         final String hour,
         final String minute,
-        final String second,
+        final String? second,
       ) =>
         switch ((
           int.tryParse(hour),
           int.tryParse(minute),
-          int.tryParse(second)
+          second != null ? int.tryParse(second) : null,
         )) {
           (final int hour, final int minute, final int second) =>
             Time.fromValues(
@@ -128,8 +130,7 @@ extension type Time._(DateTime _dateTime) {
   int compareTo(Time other) => totalSeconds - other.totalSeconds;
 
   /// Converts this Time to an ISO 8601 string
-  String toIso8601String() =>
-      '${hour.toString().padLeft(2, '0')}:'
+  String toIso8601String() => '${hour.toString().padLeft(2, '0')}:'
       '${minute.toString().padLeft(2, '0')}:'
       '${second.toString().padLeft(2, '0')}';
 }
