@@ -6,9 +6,52 @@ const nowKey = #CurrentDateKey;
 /// A function type that provides the current DateTime
 typedef Now = DateTime Function();
 
-/// An immutable type representing a calendar date without time components. 
+/// Combines a [Date] and [Time] into a single [DateTime] instance.
+/// The resulting [DateTime] will be in UTC.
+///
+/// This is useful when you need to combine separate date and time components
+/// into a single point in time.
+///
+/// Example:
+/// ```dart
+/// final date = Date.today();
+/// final time = Time.now();
+/// final dateTime = combineDateAndTime(date, time);
+/// ```
+DateTime combineDateAndTime(Date date, Time time) => DateTime.utc(
+      date.year,
+      date.month,
+      date.day,
+      time.hour,
+      time.minute,
+      time.second,
+    );
+
+/// Gets the current UTC date and time as a [DateTime].
+///
+/// This is a convenience getter that combines [Date.today()] and [Time.now()]
+/// into a single [DateTime]. The result is always in UTC.
+///
+/// Example:
+/// ```dart
+/// final currentTime = now; // Returns current UTC time
+/// ```
+DateTime get now => combineDateAndTime(Date.today(), Time.now());
+
+/// Gets the current UTC date and time as an ISO 8601 string.
+///
+/// This is a convenience getter that returns the current UTC time
+/// in ISO 8601 format with the 'Z' suffix indicating UTC.
+///
+/// Example:
+/// ```dart
+/// final currentTimeString = nowAsIso8601; // "2024-03-20T14:30:00.000Z"
+/// ```
+String get nowAsIso8601 => now.toIso8601String();
+
+/// An immutable type representing a calendar date without time components.
 /// Note the behavior of extension types in Dart (https://dart.dev/language/extension-types).
-/// For most intends and purposes a [Date] is a [DateTime] but the time 
+/// For most intends and purposes a [Date] is a [DateTime] but the time
 /// component is not accessible. See the GitHub repo for a discussion on whether
 /// this type should be a class or an extension type.
 extension type Date._(DateTime _dateTime) {
@@ -91,7 +134,7 @@ extension type Date._(DateTime _dateTime) {
 
 /// An immutable type representing a time of day without date components
 /// Note the behavior of extension types in Dart (https://dart.dev/language/extension-types).
-/// For most intends and purposes a [Time] is a [DateTime] but the date 
+/// For most intends and purposes a [Time] is a [DateTime] but the date
 /// component is not accessible. See the GitHub repo for a discussion on whether
 /// this type should be a class or an extension type.
 extension type Time._(DateTime _dateTime) {

@@ -593,4 +593,55 @@ void main() {
       expect(unmockedDate.day, equals(realNow.day));
     });
   });
+
+  group('Utility Functions', () {
+    test('combineDateAndTime creates correct UTC DateTime', () {
+      final date = Date.fromValues(year: 2024, month: 3, day: 20);
+      final time = Time.fromValues(hour: 14, minute: 30, second: 45);
+
+      final combined = combineDateAndTime(date, time);
+
+      expect(combined.isUtc, true);
+      expect(combined.year, 2024);
+      expect(combined.month, 3);
+      expect(combined.day, 20);
+      expect(combined.hour, 14);
+      expect(combined.minute, 30);
+      expect(combined.second, 45);
+    });
+
+    test('now returns correct UTC DateTime', () {
+      final mockDateTime = DateTime.utc(2024, 3, 15, 14, 30, 15);
+
+      runZoned(
+        () {
+          final current = now;
+          expect(current.isUtc, true);
+          expect(current.year, 2024);
+          expect(current.month, 3);
+          expect(current.day, 15);
+          expect(current.hour, 14);
+          expect(current.minute, 30);
+          expect(current.second, 15);
+        },
+        zoneValues: {nowKey: () => mockDateTime},
+      );
+    });
+
+    test('nowAsIso8601 returns valid UTC ISO string', () {
+      final mockDateTime = DateTime.utc(2024, 3, 15, 14, 30, 15);
+
+      runZoned(
+        () {
+          final isoString = nowAsIso8601;
+          expect(
+            isoString,
+            '2024-03-15T14:30:15.000Z',
+            reason: 'Should return UTC ISO 8601 string',
+          );
+        },
+        zoneValues: {nowKey: () => mockDateTime},
+      );
+    });
+  });
 }
