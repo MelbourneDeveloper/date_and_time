@@ -594,6 +594,179 @@ void main() {
     });
   });
 
+  group('Now and Zone-based time', () {
+    test('uses Zone-provided time when available', () {
+      final fixedTime = DateTime.utc(2024, 3, 20, 14, 30);
+      runZoned(
+        () {
+          expect(now, fixedTime);
+          expect(nowAsIso8601, fixedTime.toIso8601String());
+          expect(nowLocal, fixedTime.toLocal());
+          expect(nowLocalAsIso8601, fixedTime.toLocal().toIso8601String());
+
+          final date = Date.today();
+          expect(date.year, fixedTime.year);
+          expect(date.month, fixedTime.month);
+          expect(date.day, fixedTime.day);
+
+          final time = Time.now();
+          expect(time.hour, fixedTime.hour);
+          expect(time.minute, fixedTime.minute);
+          expect(time.second, fixedTime.second);
+        },
+        zoneValues: {
+          nowKey: () => fixedTime,
+        },
+      );
+    });
+
+    test('uses system time when no Zone time is provided', () {
+      final beforeTest = DateTime.now().toUtc();
+      final result = now;
+      final afterTest = DateTime.now().toUtc();
+
+      // The result should be between beforeTest and afterTest
+      // Convert to milliseconds since epoch for reliable comparison
+      final resultMs = result.millisecondsSinceEpoch;
+      final beforeMs = beforeTest.millisecondsSinceEpoch;
+      final afterMs = afterTest.millisecondsSinceEpoch;
+
+      // Allow for a small margin of error (1 second) since the test might 
+      // run slowly
+      final isWithinRange =
+          resultMs >= beforeMs - 1000 && resultMs <= afterMs + 1000;
+      expect(
+        isWithinRange,
+        true,
+        reason: 'Expected $resultMs to be between $beforeMs and $afterMs',
+      );
+    });
+  });
+
+  group('Additional Date parsing cases', () {
+    test('handles timezone offsets correctly', () {
+      // Test date with timezone that changes the date
+      final dateWithOffset = Date.tryParse('2024-03-20T23:00:00-02:00');
+      expect(dateWithOffset?.year, 2024);
+      expect(dateWithOffset?.month, 3);
+      expect(dateWithOffset?.day, 21); // Next day in UTC
+
+      // Test date with timezone that doesn't change the date
+      final dateNoChange = Date.tryParse('2024-03-20T10:00:00+02:00');
+      expect(dateNoChange?.year, 2024);
+      expect(dateNoChange?.month, 3);
+      expect(dateNoChange?.day, 20);
+
+      // Test invalid timezone format
+      expect(Date.tryParse('2024-03-20T10:00:00+invalid'), null);
+      expect(Date.tryParse('2024-03-20T10:00:00+'), null);
+      expect(Date.tryParse('2024-03-20T10:00:00-'), null);
+    });
+
+    test('handles time without timezone', () {
+      final dateTime = Date.tryParse('2024-03-20T14:30:00');
+      expect(dateTime?.year, 2024);
+      expect(dateTime?.month, 3);
+      expect(dateTime?.day, 20);
+    });
+
+    test('handles invalid date formats', () {
+      expect(Date.tryParse('2024-03-20T'), null);
+      expect(Date.tryParse('2024-03-20Z'), null);
+      expect(Date.tryParse('2024-03-20+02:00'), null);
+      expect(Date.tryParse('invalid'), null);
+      expect(Date.tryParse(''), null);
+    });
+  });
+
+  group('Additional Time parsing cases', () {
+    test('handles invalid time components', () {
+      expect(
+        Time.tryParse('25:00'),
+        null,
+      ); // Invalid hour
+      expect(
+        Time.tryParse('12:60'),
+        null,
+      ); // Invalid minute
+      expect(
+        Time.tryParse('12:30:61'),
+        null,
+      ); // Invalid second
+      expect(
+        Time.tryParse('-1:30'),
+        null,
+      ); // Negative hour
+      expect(
+        Time.tryParse('12:-1'),
+        null,
+      ); // Negative minute
+      expect(
+        Time.tryParse('12:30:-1'),
+        null,
+      ); // Negative second
+
+      // Additional invalid cases
+      expect(
+        Time.tryParse('12:30:aa'),
+        null,
+      ); // Non-numeric second
+      expect(
+        Time.tryParse('12:aa:00'),
+        null,
+      ); // Non-numeric minute
+      expect(
+        Time.tryParse('aa:30:00'),
+        null,
+      ); // Non-numeric hour
+    });
+
+    test('handles edge cases in time parsing', () {
+      expect(
+        Time.tryParse('23:59:59'),
+        Time.fromValues(hour: 23, minute: 59, second: 59),
+      );
+      expect(
+        Time.tryParse('00:00:00'),
+        Time.fromValues(hour: 0, minute: 0),
+      );
+      expect(
+        Time.tryParse('12:00:00'),
+        Time.fromValues(hour: 12, minute: 0),
+      );
+    });
+
+    test('handles invalid time formats', () {
+      expect(Time.tryParse('12:'), null);
+      expect(Time.tryParse('12:30:'), null);
+      expect(Time.tryParse('12:aa'), null);
+      expect(Time.tryParse('12:30:aa'), null);
+      expect(Time.tryParse('invalid'), null);
+      expect(Time.tryParse(''), null);
+      expect(Time.tryParse('12:30:00:00'), null);
+      expect(Time.tryParse('12:30:00:'), null);
+      expect(Time.tryParse('12:30:00.000'), null);
+    });
+
+    test('formats time as ISO 8601 string', () {
+      final time = Time.fromValues(hour: 14, minute: 30, second: 45);
+      expect(time.toIso8601String(), '14:30:45');
+
+      final timeWithLeadingZeros =
+          Time.fromValues(hour: 9, minute: 5, second: 2);
+      expect(timeWithLeadingZeros.toIso8601String(), '09:05:02');
+
+      final midnight = Time.fromValues(hour: 0, minute: 0);
+      expect(midnight.toIso8601String(), '00:00:00');
+
+      final noon = Time.fromValues(hour: 12, minute: 0);
+      expect(noon.toIso8601String(), '12:00:00');
+
+      final endOfDay = Time.fromValues(hour: 23, minute: 59, second: 59);
+      expect(endOfDay.toIso8601String(), '23:59:59');
+    });
+  });
+
   group('Utility Functions', () {
     test('combineDateAndTime creates correct UTC DateTime', () {
       final date = Date.fromValues(year: 2024, month: 3, day: 20);
