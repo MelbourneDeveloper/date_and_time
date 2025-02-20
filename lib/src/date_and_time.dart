@@ -206,7 +206,7 @@ extension type Time._(DateTime _dateTime) {
   static Time? tryParse(String timeString) {
     final time = timeString.split(':');
 
-    if (time.length < 2) {
+    if (time.length < 2 || time.length > 3) {
       return null;
     }
 
@@ -234,7 +234,7 @@ extension type Time._(DateTime _dateTime) {
               when !_isValid(hour, minute, second) =>
             null,
           (final int hour, final int minute, _)
-              when _isValid(hour, minute, 0) =>
+              when _isValid(hour, minute, 0) && time.length == 2 =>
             Time.fromValues(
               hour: hour,
               minute: minute,
