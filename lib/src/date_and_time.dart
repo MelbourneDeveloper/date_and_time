@@ -8,30 +8,38 @@ typedef Now = DateTime Function();
 
 /// An immutable type representing a calendar date without time components
 extension type Date._(DateTime _dateTime) {
-  /// Creates a Date from a DateTime, stripping all time components
+  /// Creates a Date from a DateTime, stripping all time components and
+  /// converting to UTC
   Date(DateTime dateTime)
-      : _dateTime = DateTime(dateTime.year, dateTime.month, dateTime.day);
+      : _dateTime = dateTime.toUtc()._let(
+              (dt) => DateTime.utc(
+                dt.year,
+                dt.month,
+                dt.day,
+              ),
+            );
 
-  /// Creates a Date from explicit year, month, and day values
+  /// Creates a Date from explicit year, month, and day values in UTC
   Date.fromValues({required int year, required int month, required int day})
-      : _dateTime = DateTime(year, month, day);
+      : _dateTime = DateTime.utc(year, month, day);
 
-  /// Creates a Date representing the current date, using Zone-provided time if
-  /// available
+  /// Creates a Date representing the current date in UTC, using Zone-provided
+  /// time if available
   factory Date.today() => switch (Zone.current[nowKey]) {
-        final Now now => Date(now()),
-        _ => Date(DateTime.now()),
+        final Now now => Date(now().toUtc()),
+        _ => Date(_utcNow),
       };
 
   /// Parses an ISO 8601 date string, returning null if the string is invalid
+  /// The resulting Date will be in UTC
   static Date? tryParse(String isoString) =>
-      switch (DateTime.tryParse(isoString)) {
+      switch (DateTime.tryParse(isoString)?.toUtc()) {
         final DateTime dateTime => Date(dateTime),
         _ => null
       };
 
-  /// The minimum possible Date value (0001-01-01)
-  static Date minValue = Date(DateTime(1));
+  /// The minimum possible Date value (0001-01-01) in UTC
+  static Date minValue = Date(DateTime.utc(1));
 
   /// The year component of the date
   int get year => _dateTime.year;
@@ -59,20 +67,30 @@ extension type Date._(DateTime _dateTime) {
 
 /// An immutable type representing a time of day without date components
 extension type Time._(DateTime _dateTime) {
-  /// Creates a Time from a DateTime, stripping all date components
+  /// Creates a Time from a DateTime, stripping all date components and
+  /// converting to UTC
   Time(DateTime dateTime)
-      : _dateTime =
-            DateTime(0, 1, 1, dateTime.hour, dateTime.minute, dateTime.second);
+      : _dateTime = dateTime.toUtc()._let(
+              (dt) => DateTime.utc(
+                0,
+                1,
+                1,
+                dt.hour,
+                dt.minute,
+                dt.second,
+              ),
+            );
 
-  /// Creates a Time from explicit hour, minute, and optional second values
+  /// Creates a Time from explicit hour, minute, and optional second values in
+  /// UTC
   Time.fromValues({required int hour, required int minute, int second = 0})
-      : _dateTime = DateTime(0, 1, 1, hour, minute, second);
+      : _dateTime = DateTime.utc(0, 1, 1, hour, minute, second);
 
-  /// Creates a Time representing the current time, using Zone-provided time
-  /// if available
+  /// Creates a Time representing the current time in UTC, using Zone-provided
+  // time if available
   factory Time.now() => switch (Zone.current[nowKey]) {
-        final Now now => Time(now()),
-        _ => Time(DateTime.now()),
+        final Now now => Time(now().toUtc()),
+        _ => Time(_utcNow),
       };
 
   /// Like this 10:01:00
@@ -148,3 +166,11 @@ extension type Time._(DateTime _dateTime) {
       '${minute.toString().padLeft(2, '0')}:'
       '${second.toString().padLeft(2, '0')}';
 }
+
+/// Convenience extensions, not to be exported
+extension _ObjectExtensions<T> on T {
+  R _let<R>(R Function(T it) f) => f(this);
+}
+
+/// Convenience getter for the current UTC DateTime
+DateTime get _utcNow => DateTime.now().toUtc();
