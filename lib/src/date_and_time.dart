@@ -121,7 +121,7 @@ extension type Time._(DateTime _dateTime) {
         _ => Time(_utcNow),
       };
 
-  /// Like this 10:01:00
+  /// Like this 13:01:00
   static Time? tryParse(String timeString) {
     final time = timeString.split(':');
 

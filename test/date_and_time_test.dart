@@ -323,11 +323,11 @@ void main() {
 
       // Create matching DateTimes for comparison
       final dateTimes = [
-        DateTime(2024, 1, 1, 14, 30, 45),
-        DateTime(2024, 1, 1, 14, 30),
-        DateTime(2024, 1, 1, 14, 31),
-        DateTime(2024, 1, 1, 14, 30, 46),
-        DateTime(2024, 1, 1, 13, 59, 59),
+        DateTime.utc(2024, 1, 1, 14, 30, 45),
+        DateTime.utc(2024, 1, 1, 14, 30),
+        DateTime.utc(2024, 1, 1, 14, 31),
+        DateTime.utc(2024, 1, 1, 14, 30, 46),
+        DateTime.utc(2024, 1, 1, 13, 59, 59),
       ];
 
       final sortedTimes = [...times]..sort((a, b) => a.compareTo(b));
@@ -471,8 +471,8 @@ void main() {
 
   group('DateOnly and TimeOnly Integration', () {
     test('different times on same date are equal for DateOnly', () {
-      final morning = DateTime(2024, 3, 20, 9);
-      final afternoon = DateTime(2024, 3, 20, 14, 30);
+      final morning = DateTime.utc(2024, 3, 20, 9);
+      final afternoon = DateTime.utc(2024, 3, 20, 14, 30);
 
       final dateOnlyMorning = Date(morning);
       final dateOnlyAfternoon = Date(afternoon);
@@ -572,8 +572,8 @@ void main() {
     });
 
     test('Zone mocking does not affect other zones', () {
-      final mockDateTime = DateTime(2024, 3, 15, 14, 30);
-      final realNow = DateTime.now();
+      final mockDateTime = DateTime.utc(2024, 3, 15, 14, 30);
+      final realNow = DateTime.now().toUtc();
 
       // Run in a zone with mocked time
       runZoned(
