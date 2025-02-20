@@ -643,5 +643,45 @@ void main() {
         zoneValues: {nowKey: () => mockDateTime},
       );
     });
+
+    test('nowLocal returns DateTime in local timezone', () {
+      final mockDateTime = DateTime.utc(2024, 3, 15, 14, 30, 15);
+
+      runZoned(
+        () {
+          final localTime = nowLocal;
+          expect(localTime.isUtc, false);
+
+          // Convert back to UTC for comparison
+          final backToUtc = localTime.toUtc();
+          expect(backToUtc.year, 2024);
+          expect(backToUtc.month, 3);
+          expect(backToUtc.day, 15);
+          expect(backToUtc.hour, 14);
+          expect(backToUtc.minute, 30);
+          expect(backToUtc.second, 15);
+        },
+        zoneValues: {nowKey: () => mockDateTime},
+      );
+    });
+
+    test('nowLocalAsIso8601 returns ISO string with timezone offset', () {
+      final mockDateTime = DateTime.utc(2024, 3, 15, 14, 30, 15);
+
+      runZoned(
+        () {
+          final localIsoString = nowLocalAsIso8601;
+          final localDateTime = mockDateTime.toLocal();
+          final expectedIsoString = localDateTime.toIso8601String();
+
+          expect(
+            localIsoString,
+            expectedIsoString,
+            reason: 'Should match local DateTime ISO string',
+          );
+        },
+        zoneValues: {nowKey: () => mockDateTime},
+      );
+    });
   });
 }

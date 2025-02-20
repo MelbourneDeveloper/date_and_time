@@ -43,11 +43,43 @@ DateTime get now => combineDateAndTime(Date.today(), Time.now());
 /// This is a convenience getter that returns the current UTC time
 /// in ISO 8601 format with the 'Z' suffix indicating UTC.
 ///
+/// Note: you can mock the current time by setting the [nowKey] in the Zone to
+/// a valid [Now] function.
+///
 /// Example:
 /// ```dart
 /// final currentTimeString = nowAsIso8601; // "2024-03-20T14:30:00.000Z"
 /// ```
 String get nowAsIso8601 => now.toIso8601String();
+
+/// Gets the current local date and time as a [DateTime].
+///
+/// This is a convenience getter that returns the current time in the local
+/// timezone. Note that this converts from UTC to local time, so the date might
+/// change depending on the timezone offset.
+/// 
+/// Note: you can mock the current time by setting the [nowKey] in the Zone to
+/// a valid [Now] function.
+///
+/// Example:
+/// ```dart
+/// final localTime = nowLocal; // Returns current local time
+/// ```
+DateTime get nowLocal => now.toLocal();
+
+/// Gets the current local date and time as an ISO 8601 string.
+///
+/// This is a convenience getter that returns the current time in the local
+/// timezone with the appropriate timezone offset.
+///
+/// Note: you can mock the current time by setting the [nowKey] in the Zone to
+/// a valid [Now] function.
+///
+/// Example:
+/// ```dart
+/// final localTimeString = nowLocalAsIso8601; // "2024-03-20T14:30:00.000+10:00"
+/// ```
+String get nowLocalAsIso8601 => nowLocal.toIso8601String();
 
 /// An immutable type representing a calendar date without time components.
 /// Note the behavior of extension types in Dart (https://dart.dev/language/extension-types).
@@ -72,6 +104,9 @@ extension type Date._(DateTime _dateTime) {
 
   /// Creates a Date representing the current date in UTC, using Zone-provided
   /// time if available
+  /// 
+  /// Note: you can mock the current Date/Time by setting the [nowKey] in the Zone to
+  /// a valid [Now] function. 
   factory Date.today() => switch (Zone.current[nowKey]) {
         final Now now => Date(now().toUtc()),
         _ => Date(_utcNow),
@@ -158,7 +193,10 @@ extension type Time._(DateTime _dateTime) {
       : _dateTime = DateTime.utc(0, 1, 1, hour, minute, second);
 
   /// Creates a Time representing the current time in UTC, using Zone-provided
-  // time if available
+  /// time if available
+  ///
+  /// Note: you can mock the current Date/Time by setting the [nowKey] in the Zone to
+  /// a valid [Now] function. 
   factory Time.now() => switch (Zone.current[nowKey]) {
         final Now now => Time(now().toUtc()),
         _ => Time(_utcNow),
