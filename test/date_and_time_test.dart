@@ -4,17 +4,27 @@ import 'package:date_and_time/library.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('DateOnly', () {
-    test('creates from DateTime', () {
-      final date = DateTime(2024, 3, 20);
-      final dateOnly = Date(date);
+  group('Date', () {
+    test('creates from UTC DateTime', () {
+      final utcDate = DateTime.utc(2024, 3, 20);
+      final date = Date(utcDate);
 
-      expect(dateOnly.year, 2024);
-      expect(dateOnly.month, 3);
-      expect(dateOnly.day, 20);
+      expect(date.year, 2024);
+      expect(date.month, 3);
+      expect(date.day, 20);
     });
 
-    test('creates from values', () {
+    test('converts local DateTime to UTC', () {
+      final localDate = DateTime(2024, 3, 20, 14, 30); // Local time
+      final date = Date(localDate);
+      final utcDate = Date(localDate.toUtc()); // Explicit UTC conversion
+
+      expect(date.year, utcDate.year);
+      expect(date.month, utcDate.month);
+      expect(date.day, utcDate.day);
+    });
+
+    test('creates from values in UTC', () {
       final dateOnly = Date.fromValues(
         year: 2024,
         month: 3,
@@ -26,10 +36,10 @@ void main() {
       expect(dateOnly.day, 20);
     });
 
-    test('equals ignores time components', () {
-      final date1 = DateTime(2024, 3, 20, 14, 30, 45);
-      final date2 = DateTime(2024, 3, 20, 9);
-      final date3 = DateTime(2024, 3, 20, 23, 59, 59, 999);
+    test('equals ignores time components while preserving UTC', () {
+      final date1 = DateTime.utc(2024, 3, 20, 14, 30, 45);
+      final date2 = DateTime.utc(2024, 3, 20, 9);
+      final date3 = DateTime.utc(2024, 3, 20, 23, 59, 59, 999);
 
       final dateOnly1 = Date(date1);
       final dateOnly2 = Date(date2);
@@ -40,7 +50,7 @@ void main() {
       expect(dateOnly1 == dateOnly3, true);
     });
 
-    test('not equals for different dates', () {
+    test('not equals for different dates in UTC', () {
       final dateOnly1 = Date.fromValues(
         year: 2024,
         month: 3,
@@ -67,7 +77,7 @@ void main() {
       expect(dateOnly1 == dateOnly4, false);
     });
 
-    test('handles leap years correctly', () {
+    test('handles leap years correctly in UTC', () {
       final dateOnly2024 = Date.fromValues(
         year: 2024,
         month: 2,
@@ -92,10 +102,10 @@ void main() {
       expect(dateOnlyNonLeap.month, 2);
     });
 
-    test('handles edge cases around midnight', () {
-      final justBeforeMidnight = DateTime(2024, 3, 20, 23, 59, 59, 999);
-      final midnight = DateTime(2024, 3, 21);
-      final justAfterMidnight = DateTime(2024, 3, 21, 0, 0, 1);
+    test('handles edge cases around UTC midnight', () {
+      final justBeforeMidnight = DateTime.utc(2024, 3, 20, 23, 59, 59, 999);
+      final midnight = DateTime.utc(2024, 3, 21);
+      final justAfterMidnight = DateTime.utc(2024, 3, 21, 0, 0, 1);
 
       final dateOnlyBefore = Date(justBeforeMidnight);
       final dateOnlyMidnight = Date(midnight);
@@ -108,7 +118,7 @@ void main() {
       expect(dateOnlyAfter.day, 21);
     });
 
-    test('supports add and subtract operations', () {
+    test('supports add and subtract operations preserving UTC', () {
       final date = Date.fromValues(
         year: 2024,
         month: 3,
@@ -124,7 +134,7 @@ void main() {
       expect(previousDay.month, 3);
     });
 
-    test('handles month boundaries with add/subtract', () {
+    test('handles month boundaries with add/subtract in UTC', () {
       final endOfMonth = Date.fromValues(
         year: 2024,
         month: 3,
@@ -147,7 +157,7 @@ void main() {
       expect(previousMonth.day, 29); // 2024 is a leap year
     });
 
-    test('provides weekday information', () {
+    test('provides weekday information in UTC', () {
       final wednesday = Date.fromValues(
         year: 2024,
         month: 3,
@@ -168,19 +178,49 @@ void main() {
       expect(thursday.weekday, DateTime.thursday);
       expect(tuesday.weekday, DateTime.tuesday);
     });
+
+    test('parses ISO 8601 dates to UTC', () {
+      // Basic date parsing without time/timezone
+      final parsed = Date.tryParse('2024-03-20');
+      expect(parsed?.year, 2024);
+      expect(parsed?.month, 3);
+      expect(parsed?.day, 20);
+
+      // Test with explicit UTC timezone
+      final utcParsed = Date.tryParse('2024-03-20T12:00:00Z');
+      expect(utcParsed?.year, 2024);
+      expect(utcParsed?.month, 3);
+      expect(utcParsed?.day, 20);
+
+      // Test with explicit offset that doesn't change the date
+      final offsetParsed = Date.tryParse('2024-03-20T12:00:00+00:00');
+      expect(offsetParsed?.year, 2024);
+      expect(offsetParsed?.month, 3);
+      expect(offsetParsed?.day, 20);
+    });
   });
 
-  group('TimeOnly', () {
-    test('creates from DateTime', () {
-      final date = DateTime(2024, 3, 20, 14, 30, 45);
-      final timeOnly = Time(date);
+  group('Time', () {
+    test('creates from UTC DateTime', () {
+      final utcDate = DateTime.utc(2024, 3, 20, 14, 30, 45);
+      final timeOnly = Time(utcDate);
 
       expect(timeOnly.hour, 14);
       expect(timeOnly.minute, 30);
       expect(timeOnly.second, 45);
     });
 
-    test('creates from values', () {
+    test('converts local DateTime to UTC', () {
+      final localTime = DateTime(2024, 3, 20, 14, 30, 45); // Local time
+      final time = Time(localTime);
+      final utcTime = Time(localTime.toUtc()); // Explicit UTC conversion
+
+      expect(time.hour, utcTime.hour);
+      expect(time.minute, utcTime.minute);
+      expect(time.second, utcTime.second);
+    });
+
+    test('creates from values in UTC', () {
       final timeOnly = Time.fromValues(
         hour: 14,
         minute: 30,
@@ -395,6 +435,40 @@ void main() {
     });
   });
 
+  group('Date and Time Integration', () {
+    test('handles timezone conversion consistently', () {
+      // Create a UTC DateTime at 23:30
+      final utcDateTime = DateTime.utc(2024, 3, 20, 23, 30);
+
+      // Create Date and Time from the UTC DateTime
+      final date = Date(utcDateTime);
+      final time = Time(utcDateTime);
+
+      // The date should be March 20
+      expect(date.year, 2024);
+      expect(date.month, 3);
+      expect(date.day, 20);
+
+      // The time should be 23:30
+      expect(time.hour, 23);
+      expect(time.minute, 30);
+      expect(time.second, 0);
+
+      // Now create a local DateTime that will convert to the same UTC time
+      final localDateTime = utcDateTime.toLocal();
+      final dateFromLocal = Date(localDateTime);
+      final timeFromLocal = Time(localDateTime);
+
+      // Should get the same results when converting from local time
+      expect(dateFromLocal.year, date.year);
+      expect(dateFromLocal.month, date.month);
+      expect(dateFromLocal.day, date.day);
+      expect(timeFromLocal.hour, time.hour);
+      expect(timeFromLocal.minute, time.minute);
+      expect(timeFromLocal.second, time.second);
+    });
+  });
+
   group('DateOnly and TimeOnly Integration', () {
     test('different times on same date are equal for DateOnly', () {
       final morning = DateTime(2024, 3, 20, 9);
@@ -447,8 +521,8 @@ void main() {
   });
 
   group('Zone-based time mocking', () {
-    test('Date.today() can be mocked with zones', () {
-      final mockDate = DateTime(2024, 3, 15);
+    test('Date.today() returns UTC when mocked', () {
+      final mockDate = DateTime.utc(2024, 3, 15);
 
       runZoned(
         () {
@@ -461,8 +535,8 @@ void main() {
       );
     });
 
-    test('Time.now() can be mocked with zones', () {
-      final mockTime = DateTime(2000, 1, 1, 14, 30, 15);
+    test('Time.now() returns UTC when mocked', () {
+      final mockTime = DateTime.utc(2000, 1, 1, 14, 30, 15);
 
       runZoned(
         () {
@@ -475,8 +549,8 @@ void main() {
       );
     });
 
-    test('Date and Time can be mocked simultaneously', () {
-      final mockDateTime = DateTime(2024, 3, 15, 14, 30, 15);
+    test('Date and Time can be mocked simultaneously in UTC', () {
+      final mockDateTime = DateTime.utc(2024, 3, 15, 14, 30, 15);
 
       runZoned(
         () {

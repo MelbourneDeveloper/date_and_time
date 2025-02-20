@@ -6,7 +6,11 @@ const nowKey = #CurrentDateKey;
 /// A function type that provides the current DateTime
 typedef Now = DateTime Function();
 
-/// An immutable type representing a calendar date without time components
+/// An immutable type representing a calendar date without time components. 
+/// Note the behavior of extension types in Dart (https://dart.dev/language/extension-types).
+/// For most intends and purposes a [Date] is a [DateTime] but the time 
+/// component is not accessible. See the GitHub repo for a discussion on whether
+/// this type should be a class or an extension type.
 extension type Date._(DateTime _dateTime) {
   /// Creates a Date from a DateTime, stripping all time components and
   /// converting to UTC
@@ -32,11 +36,31 @@ extension type Date._(DateTime _dateTime) {
 
   /// Parses an ISO 8601 date string, returning null if the string is invalid
   /// The resulting Date will be in UTC
-  static Date? tryParse(String isoString) =>
-      switch (DateTime.tryParse(isoString)?.toUtc()) {
+  static Date? tryParse(String isoString) {
+    // If the string doesn't contain time information, treat it as UTC
+    if (!isoString.contains('T')) {
+      return switch (DateTime.tryParse('${isoString}T00:00:00Z')) {
         final DateTime dateTime => Date(dateTime),
         _ => null
       };
+    }
+
+    // If it has time information but no timezone, assume UTC
+    if (!isoString.contains('Z') &&
+        !isoString.contains('+') &&
+        !isoString.contains('-')) {
+      return switch (DateTime.tryParse('${isoString}Z')) {
+        final DateTime dateTime => Date(dateTime),
+        _ => null
+      };
+    }
+
+    // Otherwise parse with timezone information
+    return switch (DateTime.tryParse(isoString)) {
+      final DateTime dateTime => Date(dateTime),
+      _ => null
+    };
+  }
 
   /// The minimum possible Date value (0001-01-01) in UTC
   static Date minValue = Date(DateTime.utc(1));
@@ -66,6 +90,10 @@ extension type Date._(DateTime _dateTime) {
 }
 
 /// An immutable type representing a time of day without date components
+/// Note the behavior of extension types in Dart (https://dart.dev/language/extension-types).
+/// For most intends and purposes a [Time] is a [DateTime] but the date 
+/// component is not accessible. See the GitHub repo for a discussion on whether
+/// this type should be a class or an extension type.
 extension type Time._(DateTime _dateTime) {
   /// Creates a Time from a DateTime, stripping all date components and
   /// converting to UTC
