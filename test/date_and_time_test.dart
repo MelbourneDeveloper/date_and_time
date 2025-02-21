@@ -192,7 +192,6 @@ void main() {
       // Test with explicit UTC timezone
       const isoString = '2024-03-20T12:00:00Z';
       final utcParsed = Date.tryParse(isoString);
-      final utcParsedDateTime = DateTime.tryParse(isoString);
       expect(utcParsed?.year, 2024);
       expect(utcParsed?.month, 3);
       expect(utcParsed?.day, 20);
