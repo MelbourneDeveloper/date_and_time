@@ -913,6 +913,23 @@ void main() {
       );
     });
   });
+
+  group('Date toIso8601String', () {
+    test('formats date correctly', () {
+      final date = Date.fromValues(year: 2024, month: 3, day: 20);
+      expect(date.toIso8601String(), '2024-03-20');
+    });
+
+    test('handles leading zeros in month and day', () {
+      final date = Date.fromValues(year: 2024, month: 1, day: 5);
+      expect(date.toIso8601String(), '2024-01-05');
+    });
+
+    test('handles minimum date value', () {
+      final minDate = Date.minValue;
+      expect(minDate.toIso8601String(), '0001-01-01');
+    });
+  });
 }
 
 /// Expects that the date and dateTime are equivalent, taking into account
