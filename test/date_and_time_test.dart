@@ -203,6 +203,8 @@ void main() {
       expect(offsetParsed?.year, 2024);
       expect(offsetParsed?.month, 3);
       expect(offsetParsed?.day, 20);
+      expect(offsetParsed?.asDateTime.hour, 0);
+      expect(offsetParsed?.asDateTime.isUtc, true);
     });
   });
 
