@@ -196,7 +196,8 @@ void main() {
       expect(utcParsed?.year, 2024);
       expect(utcParsed?.month, 3);
       expect(utcParsed?.day, 20);
-      expect(utcParsed, equals(utcParsedDateTime));
+      expect(utcParsed?.asDateTime.hour, 0);
+      expect(utcParsed?.asDateTime.isUtc, true);
 
       // Test with explicit offset that doesn't change the date
       final offsetParsed = Date.tryParse('2024-03-20T12:00:00+00:00');
