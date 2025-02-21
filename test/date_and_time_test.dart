@@ -181,16 +181,22 @@ void main() {
 
     test('parses ISO 8601 dates to UTC', () {
       // Basic date parsing without time/timezone
-      final parsed = Date.tryParse('2024-03-20');
-      expect(parsed?.year, 2024);
-      expect(parsed?.month, 3);
-      expect(parsed?.day, 20);
+
+      // This starts with a date of 2024-03-20 is local time, it gets
+      // parsed and then converted to UTC. We don't know the result
+      // unless we know the local timezone.
+      final parsedDate = Date.tryParse('2024-03-21');
+      final parsedDateTime = DateTime.tryParse('2024-03-21');
+      expectDateEquivalence(parsedDate, parsedDateTime);
 
       // Test with explicit UTC timezone
-      final utcParsed = Date.tryParse('2024-03-20T12:00:00Z');
+      const isoString = '2024-03-20T12:00:00Z';
+      final utcParsed = Date.tryParse(isoString);
+      final utcParsedDateTime = DateTime.tryParse(isoString);
       expect(utcParsed?.year, 2024);
       expect(utcParsed?.month, 3);
       expect(utcParsed?.day, 20);
+      expect(utcParsed, equals(utcParsedDateTime));
 
       // Test with explicit offset that doesn't change the date
       final offsetParsed = Date.tryParse('2024-03-20T12:00:00+00:00');
@@ -706,7 +712,7 @@ void main() {
     });
 
     test('handles date with invalid time', () {
-      // Note: this looks like a bug in the core DateTime library. This 
+      // Note: this looks like a bug in the core DateTime library. This
       // probably should return null but instead it returns a blank time
       expect(Date.tryParse('2024-03-20T25:00:00'), DateTime.utc(2024, 03, 20));
       expect(Date.tryParse('2024-03-20T12:60:00'), DateTime.utc(2024, 03, 20));
@@ -905,4 +911,17 @@ void main() {
       );
     });
   });
+}
+
+/// Expects that the date and dateTime are equivalent, taking into account
+/// the local timezone offset.
+void expectDateEquivalence(Date? date, DateTime? dateTime) {
+  // Get the current computer's timezone offset
+  final localOffset = DateTime.now().timeZoneOffset;
+
+  // Expect the difference between parsedDate and parsedDateTime to
+  // be the timezone offset
+  final difference = date?.asDateTime.difference(dateTime!).abs();
+
+  expect(24 - difference!.inHours, localOffset.inHours);
 }

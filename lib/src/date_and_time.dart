@@ -57,7 +57,7 @@ String get nowAsIso8601 => now.toIso8601String();
 /// This is a convenience getter that returns the current time in the local
 /// timezone. Note that this converts from UTC to local time, so the date might
 /// change depending on the timezone offset.
-/// 
+///
 /// Note: you can mock the current time by setting the [nowKey] in the Zone to
 /// a valid [Now] function.
 ///
@@ -104,9 +104,9 @@ extension type Date._(DateTime _dateTime) {
 
   /// Creates a Date representing the current date in UTC, using Zone-provided
   /// time if available
-  /// 
+  ///
   /// Note: you can mock the current Date/Time by setting the [nowKey] in the Zone to
-  /// a valid [Now] function. 
+  /// a valid [Now] function.
   factory Date.today() => switch (Zone.current[nowKey]) {
         final Now now => Date(now().toUtc()),
         _ => Date(_utcNow),
@@ -114,31 +114,12 @@ extension type Date._(DateTime _dateTime) {
 
   /// Parses an ISO 8601 date string, returning null if the string is invalid
   /// The resulting Date will be in UTC
-  static Date? tryParse(String isoString) {
-    // If the string doesn't contain time information, treat it as UTC
-    if (!isoString.contains('T')) {
-      return switch (DateTime.tryParse('${isoString}T00:00:00Z')) {
+  static Date? tryParse(String isoString) =>
+      // Otherwise parse with timezone information
+      switch (DateTime.tryParse(isoString)) {
         final DateTime dateTime => Date(dateTime),
         _ => null
       };
-    }
-
-    // If it has time information but no timezone, assume UTC
-    if (!isoString.contains('Z') &&
-        !isoString.contains('+') &&
-        !isoString.contains('-')) {
-      return switch (DateTime.tryParse('${isoString}Z')) {
-        final DateTime dateTime => Date(dateTime),
-        _ => null
-      };
-    }
-
-    // Otherwise parse with timezone information
-    return switch (DateTime.tryParse(isoString)) {
-      final DateTime dateTime => Date(dateTime),
-      _ => null
-    };
-  }
 
   /// The minimum possible Date value (0001-01-01) in UTC
   static Date minValue = Date(DateTime.utc(1));
@@ -165,6 +146,9 @@ extension type Date._(DateTime _dateTime) {
   String toIso8601String() =>
       '${year.toString().padLeft(4, '0')}-${month.toString().padLeft(2, '0')}'
       '-${day.toString().padLeft(2, '0')}';
+
+  /// Returns the underlying DateTime
+  DateTime get asDateTime => _dateTime;
 }
 
 /// An immutable type representing a time of day without date components
@@ -196,7 +180,7 @@ extension type Time._(DateTime _dateTime) {
   /// time if available
   ///
   /// Note: you can mock the current Date/Time by setting the [nowKey] in the Zone to
-  /// a valid [Now] function. 
+  /// a valid [Now] function.
   factory Time.now() => switch (Zone.current[nowKey]) {
         final Now now => Time(now().toUtc()),
         _ => Time(_utcNow),
