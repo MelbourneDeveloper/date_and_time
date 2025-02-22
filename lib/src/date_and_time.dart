@@ -147,8 +147,13 @@ extension type Date._(DateTime _dateTime) {
       '${year.toString().padLeft(4, '0')}-${month.toString().padLeft(2, '0')}'
       '-${day.toString().padLeft(2, '0')}';
 
-  /// Returns the underlying DateTime
+  /// Returns the underlying UTC [DateTime]. The time component will always be 
+  /// 00:00:00.
   DateTime get asDateTime => _dateTime;
+
+  /// Returns the underlying UTC [DateTime] converted to local [DateTime].
+  /// The time component will always be 00:00:00.
+  DateTime toLocalDateTime() => _dateTime.toLocal();
 }
 
 /// An immutable type representing a time of day without date components
