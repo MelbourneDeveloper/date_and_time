@@ -1,5 +1,9 @@
 ## 0.0.3-alpha
 
+- Breaking change: switches to using DateTime's underlying toIso8601String instead of manually formatting the string.
+
+## 0.0.3-alpha
+
 - Switched to UTC-first approach for all date and time operations
 - Added new utility functions:
   - `combineDateAndTime` for combining Date and Time into DateTime
