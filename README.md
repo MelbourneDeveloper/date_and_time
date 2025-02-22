@@ -49,8 +49,10 @@ Install the package according the "Installing" tab here on Pub Dev.
 // Get today's date (in UTC)
 final today = Date.today();
 
-// Parse from string (assumes UTC)
-final birthday = Date.tryParse('1990-04-15');
+final utcBirthday = Date.tryParse('1990-04-15T00:00:00Z'); // Recommended approach. Explicitly UTC
+
+// Parse from string (assumes local time if no timezone is provided)
+final birthday = Date.tryParse('1990-04-15'); // The time will be parsed as local time and converted to UTC, which probably won't be what you want.
 
 // Create from values (in UTC)
 final date = Date.fromValues(year: 2024, month: 3, day: 15);
@@ -72,7 +74,7 @@ final tomorrow = date.add(Duration(days: 1));
 final yesterday = date.subtract(Duration(days: 1));
 
 // ISO 8601 formatting
-print(date.toIso8601String()); // 2024-03-15
+print(date.toIso8601String()); // 2024-03-15T00:00:00.000Z
 ```
 
 ### Working with Times
@@ -90,8 +92,9 @@ print(time.minute);       // 30
 print(time.second);       // 15
 print(time.totalSeconds); // 52215
 
-// Parse from string (assumes UTC)
-final parsed = Time.tryParse('14:30:15');
+// Parse from string (assumes local time if no timezone is provided)
+final parsed = Time.tryParse('14:30:15'); // Parsed as local time
+final utcParsed = Time.tryParse('14:30:15Z'); // Explicitly UTC
 
 // Compare times
 final meetingTime = Time.fromValues(hour: 14, minute: 30);
