@@ -969,6 +969,95 @@ void main() {
     final date2 = Date.tryParse(DateTime.utc(2024, 3, 15).toIso8601String())!;
     expect(date1 == date2, true);
   });
+
+  group('Date ISO 8601 round-trip', () {
+    test('round-trip preserves date components', () {
+      final dates = [
+        Date.fromValues(year: 2024, month: 3, day: 20),
+        Date.fromValues(year: 2024, month: 12, day: 31),
+        Date.fromValues(year: 2024, month: 1, day: 1),
+        Date.fromValues(year: 1, month: 1, day: 1), // Min value
+        Date.fromValues(year: 9999, month: 12, day: 31), // Near max
+      ];
+
+      for (final date in dates) {
+        final isoString = date.toIso8601String();
+        final roundTripped = Date.tryParse(isoString);
+        expect(
+          roundTripped,
+          date,
+          reason: 'Failed round-trip for $isoString',
+        );
+      }
+    });
+
+    test('round-trip with different source formats', () {
+      // Test pairs of [input string, expected normalized output]
+      const testCases = [
+        // Basic UTC formats
+        ['2024-03-20T00:00:00.000Z', '2024-03-20T00:00:00.000Z'],
+        ['2024-03-20T00:00:00Z', '2024-03-20T00:00:00.000Z'],
+        ['2024-03-20T00:00Z', '2024-03-20T00:00:00.000Z'],
+
+        //DateTime.parse doesn't support this
+        //['2024-03-20Z', '2024-03-20T00:00:00.000Z'],
+
+        // With explicit positive offset that doesn't change date
+        ['2024-03-20T12:00:00+00:00', '2024-03-20T00:00:00.000Z'],
+        ['2024-03-20T12:00+00:00', '2024-03-20T00:00:00.000Z'],
+
+        // With offset that changes date forward
+        ['2024-03-19T23:00:00-02:00', '2024-03-20T00:00:00.000Z'],
+
+        // TODO: more datetime offset tests
+      ];
+
+      for (final testCase in testCases) {
+        final input = testCase[0];
+        final expectedOutput = testCase[1];
+        final date = Date.tryParse(input);
+        expect(
+          date?.toIso8601String(),
+          expectedOutput,
+          reason: 'Failed for input: $input',
+        );
+      }
+    });
+
+    test('round-trip preserves equality after timezone conversion', () {
+      const utcString = '2024-03-20T00:00:00.000Z';
+      const offsetString = '2024-03-20T02:00:00+02:00';
+
+      final utcDate = Date.tryParse(utcString);
+      final offsetDate = Date.tryParse(offsetString);
+
+      expect(
+        utcDate == offsetDate,
+        true,
+        reason: 'Dates should be equal after timezone normalization',
+      );
+      expect(
+        utcDate?.toIso8601String(),
+        offsetDate?.toIso8601String(),
+        reason: 'ISO strings should match after normalization',
+      );
+    });
+
+    test('round-trip with local time strings', () {
+      // Create a date that we know will be the same regardless of local
+      // timezone
+      const localNoonString = '2024-03-20T12:00:00';
+      final date = Date.tryParse(localNoonString);
+
+      // When we convert back to ISO string, it should be normalized to
+      // midnight UTC
+      expect(
+        date?.toIso8601String().endsWith('T00:00:00.000Z'),
+        true,
+        reason: 'Local time should be normalized to midnight UTC',
+      );
+    });
+  });
 }
 
 /// Expects that the date and dateTime are equivalent, taking into account
