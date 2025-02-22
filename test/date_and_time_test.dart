@@ -917,17 +917,22 @@ void main() {
   group('Date toIso8601String', () {
     test('formats date correctly', () {
       final date = Date.fromValues(year: 2024, month: 3, day: 20);
-      expect(date.toIso8601String(), '2024-03-20');
+      expect(
+        date.toIso8601String(),
+        DateTime.utc(2024, 3, 20).toIso8601String(),
+        reason: 'ISO 8601 string should match DateTimes ISO 8601 string',
+      );
+      expect(date.toIso8601String(), '2024-03-20T00:00:00.000Z');
     });
 
     test('handles leading zeros in month and day', () {
       final date = Date.fromValues(year: 2024, month: 1, day: 5);
-      expect(date.toIso8601String(), '2024-01-05');
+      expect(date.toIso8601String(), '2024-01-05T00:00:00.000Z');
     });
 
     test('handles minimum date value', () {
       final minDate = Date.minValue;
-      expect(minDate.toIso8601String(), '0001-01-01');
+      expect(minDate.toIso8601String(), '0001-01-01T00:00:00.000Z');
     });
   });
 

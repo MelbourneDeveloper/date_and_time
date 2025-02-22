@@ -134,13 +134,12 @@ extension type Date._(DateTime _dateTime) {
 
   /// Parses an ISO 8601 date string, returning null if the string is invalid.
   /// If the input string includes timezone information, it will be converted
-  /// to UTC. The resulting Date will always be in UTC.
-  ///
-  /// Example:
-  /// ```dart
-  /// final utcDate = Date.tryParse('2024-03-20');  // Parsed as UTC
-  /// final tzDate = Date.tryParse('2024-03-20T00:00:00+02:00');  // To UTC
-  /// ```
+  /// to UTC. The resulting Date will always be in UTC. 
+  /// 
+  /// ⚠️ you should always generate the ISO string using [toIso8601String] 
+  /// because it includes the Z suffix to indicate UTC. If the string does
+  /// not include the Z suffix, the date will be assumed to be in the local
+  /// timezone, and will get converted to UTC.
   static Date? tryParse(String isoString) =>
       switch (DateTime.tryParse(isoString)) {
         final DateTime dateTime => Date(dateTime),
@@ -170,11 +169,11 @@ extension type Date._(DateTime _dateTime) {
   /// The day of the week (1-7, where 1 is Monday) in UTC
   int get weekday => _dateTime.weekday;
 
-  /// Converts this Date to an ISO 8601 string.
-  /// The output represents the date in UTC.
-  String toIso8601String() =>
-      '${year.toString().padLeft(4, '0')}-${month.toString().padLeft(2, '0')}'
-      '-${day.toString().padLeft(2, '0')}';
+  /// Converts this [Date] to an ISO 8601 DateTime string.
+  /// The output will always represent UTC, and include the time component 
+  /// (00:00:00). This is because the [Date] type is a wrapper around a 
+  /// [DateTime], and the [DateTime] type includes the time component.
+  String toIso8601String() => _dateTime.toIso8601String();
 
   /// Returns the underlying UTC [DateTime]. The time component will always be
   /// 00:00:00 UTC.
