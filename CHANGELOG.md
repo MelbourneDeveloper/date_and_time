@@ -1,4 +1,4 @@
-## 0.0.3-alpha
+## 0.0.4-alpha
 
 - Breaking change: switches to using DateTime's underlying toIso8601String instead of manually formatting the string.
 
