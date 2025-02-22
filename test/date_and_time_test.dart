@@ -930,6 +930,34 @@ void main() {
       expect(minDate.toIso8601String(), '0001-01-01');
     });
   });
+
+  group('Date toLocalDateTime', () {
+    test('maintains correct date components when converted to local', () {
+      final utcDate = DateTime.utc(2024, 3, 20);
+      final date = Date(utcDate);
+      final localDateTime = date.toLocalDateTime();
+      final expectedLocalDateTime = utcDate.toLocal();
+
+      expect(localDateTime.year, expectedLocalDateTime.year);
+      expect(localDateTime.month, expectedLocalDateTime.month);
+      expect(localDateTime.day, expectedLocalDateTime.day);
+    });
+
+    test('handles daylight saving time transitions', () {
+      // Assuming daylight saving time starts on March 10, 2024
+      final beforeDST = DateTime.utc(2024, 3, 9);
+      final afterDST = DateTime.utc(2024, 3, 11);
+
+      final dateBeforeDST = Date(beforeDST);
+      final dateAfterDST = Date(afterDST);
+
+      final localBeforeDST = dateBeforeDST.toLocalDateTime();
+      final localAfterDST = dateAfterDST.toLocalDateTime();
+
+      expect(localBeforeDST.day, beforeDST.toLocal().day);
+      expect(localAfterDST.day, afterDST.toLocal().day);
+    });
+  });
 }
 
 /// Expects that the date and dateTime are equivalent, taking into account
