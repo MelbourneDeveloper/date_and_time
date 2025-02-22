@@ -1,3 +1,7 @@
+## 0.0.5-alpha
+
+- Fix documentation inaccuracy around date parsing and UTC handling.
+  
 ## 0.0.4-alpha
 
 - Breaking change: switches to using DateTime's underlying toIso8601String instead of manually formatting the string.
