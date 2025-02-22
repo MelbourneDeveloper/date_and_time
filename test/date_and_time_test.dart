@@ -958,6 +958,12 @@ void main() {
       expect(localAfterDST.day, afterDST.toLocal().day);
     });
   });
+
+  test('tasks with same date from different sources be equal', () {
+    final date1 = Date.fromValues(year: 2024, month: 3, day: 15);
+    final date2 = Date.tryParse(DateTime.utc(2024, 3, 15).toIso8601String())!;
+    expect(date1 == date2, true);
+  });
 }
 
 /// Expects that the date and dateTime are equivalent, taking into account
