@@ -907,6 +907,82 @@ void main() {
       );
     });
   });
+
+  group('DateAndTime record', () {
+    test('creates from Date and Time', () {
+      final date = Date.fromValues(year: 2024, month: 3, day: 20);
+      final time = Time.fromValues(hour: 14, minute: 30, second: 45);
+
+      final dateAndTime = createDateAndTime(date, time);
+      expect(dateAndTime.date, date);
+      expect(dateAndTime.time, time);
+
+      // Test toDateTime extension
+      final dateTime = dateAndTime.toDateTime();
+      expect(dateTime.isUtc, true);
+      expect(dateTime.year, 2024);
+      expect(dateTime.month, 3);
+      expect(dateTime.day, 20);
+      expect(dateTime.hour, 14);
+      expect(dateTime.minute, 30);
+      expect(dateTime.second, 45);
+
+      // Test DateTime.toDateAndTime extension
+      final roundTrip = dateTime.toDateAndTime();
+      expect(roundTrip.date, date);
+      expect(roundTrip.time, time);
+    });
+
+    test('converts local DateTime to DateAndTime', () {
+      final localDateTime = DateTime(2024, 3, 20, 14, 30, 45);
+      final dateAndTime = localDateTime.toDateAndTime();
+      final utcDateTime = localDateTime.toUtc();
+
+      expect(dateAndTime.date.year, utcDateTime.year);
+      expect(dateAndTime.date.month, utcDateTime.month);
+      expect(dateAndTime.date.day, utcDateTime.day);
+      expect(dateAndTime.time.hour, utcDateTime.hour);
+      expect(dateAndTime.time.minute, utcDateTime.minute);
+      expect(dateAndTime.time.second, utcDateTime.second);
+
+      // Test round-trip through toDateTime
+      final roundTrip = dateAndTime.toDateTime();
+      expect(roundTrip.isUtc, true);
+      expect(roundTrip.year, utcDateTime.year);
+      expect(roundTrip.month, utcDateTime.month);
+      expect(roundTrip.day, utcDateTime.day);
+      expect(roundTrip.hour, utcDateTime.hour);
+      expect(roundTrip.minute, utcDateTime.minute);
+      expect(roundTrip.second, utcDateTime.second);
+    });
+  });
+
+  group('DateTime extensions', () {
+    test('converts to DateAndTime', () {
+      final dateTime = DateTime.utc(2024, 3, 20, 14, 30, 45);
+      final dateAndTime = dateTime.toDateAndTime();
+
+      expect(dateAndTime.date.year, 2024);
+      expect(dateAndTime.date.month, 3);
+      expect(dateAndTime.date.day, 20);
+      expect(dateAndTime.time.hour, 14);
+      expect(dateAndTime.time.minute, 30);
+      expect(dateAndTime.time.second, 45);
+    });
+
+    test('converts local DateTime to DateAndTime in UTC', () {
+      final localDateTime = DateTime(2024, 3, 20, 14, 30, 45);
+      final dateAndTime = localDateTime.toDateAndTime();
+      final utcDateTime = localDateTime.toUtc();
+
+      expect(dateAndTime.date.year, utcDateTime.year);
+      expect(dateAndTime.date.month, utcDateTime.month);
+      expect(dateAndTime.date.day, utcDateTime.day);
+      expect(dateAndTime.time.hour, utcDateTime.hour);
+      expect(dateAndTime.time.minute, utcDateTime.minute);
+      expect(dateAndTime.time.second, utcDateTime.second);
+    });
+  });
 }
 
 /// Expects that the date and dateTime are equivalent, taking into account

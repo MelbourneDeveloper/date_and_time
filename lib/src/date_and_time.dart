@@ -14,6 +14,9 @@ extension DateAndTimeExtensions on DateAndTime {
         date.year,
         date.month,
         date.day,
+        time.hour,
+        time.minute,
+        time.second,
       );
 }
 
