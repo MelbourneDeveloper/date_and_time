@@ -1,5 +1,13 @@
 import 'dart:async';
 
+
+/// A key used in Zone values to provide custom DateTime implementations.
+/// Any DateTime returned will be converted to UTC before use.
+const nowKey = #CurrentDateKey;
+
+/// A function type that provides the current DateTime.
+typedef Now = DateTime Function();
+
 /// Combines a [Date] and [Time] into a single record so that enough
 /// information is preserved to reconstruct the [DateTime].
 typedef DateAndTime = ({Date date, Time time});
@@ -31,13 +39,6 @@ extension DateTimeExtensions on DateTime {
         time: Time(this),
       );
 }
-
-/// A key used in Zone values to provide custom DateTime implementations.
-/// Any DateTime returned will be converted to UTC before use.
-const nowKey = #CurrentDateKey;
-
-/// A function type that provides the current DateTime.
-typedef Now = DateTime Function();
 
 /// Combines a [Date] and [Time] into a single [DateTime] instance.
 /// The resulting [DateTime] will be in UTC. Note that [Date] and [Time]
