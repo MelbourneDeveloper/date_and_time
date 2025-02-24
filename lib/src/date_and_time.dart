@@ -175,9 +175,11 @@ extension type Date._(DateTime _dateTime) {
     final month = int.tryParse(date[1]);
     final day = int.tryParse(date[2]);
 
-    if (year == null || month == null || day == null) {}
+    if (year == null || month == null || day == null) {
+      return null;
+    }
 
-    return Date.fromValues(year: year!, month: month!, day: day!);
+    return Date.fromValues(year: year, month: month, day: day);
   }
 
   /// The minimum possible Date value (0001-01-01) in UTC
@@ -340,6 +342,10 @@ extension type Time._(DateTime _dateTime) {
   String toTimeString() =>
       '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}'
       ':${second.toString().padLeft(2, '0')}';
+
+  /// Converts this Time to an ISO 8601 string.
+  /// The output represents the time in UTC without timezone information.
+  String toIso8601String() => toTimeString();
 }
 
 /// Convenience extensions, not to be exported
