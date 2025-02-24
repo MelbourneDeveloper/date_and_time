@@ -342,10 +342,6 @@ extension type Time._(DateTime _dateTime) {
   String toTimeString() =>
       '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}'
       ':${second.toString().padLeft(2, '0')}';
-
-  /// Converts this Time to an ISO 8601 string.
-  /// The output represents the time in UTC without timezone information.
-  String toIso8601String() => toTimeString();
 }
 
 /// Convenience extensions, not to be exported

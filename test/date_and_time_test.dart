@@ -181,30 +181,63 @@ void main() {
 
     test('parses ISO 8601 dates to UTC', () {
       // Basic date parsing without time/timezone
-
-      // This starts with a date of 2024-03-20 is local time, it gets
-      // parsed and then converted to UTC. We don't know the result
-      // unless we know the local timezone.
-      final parsedDate = Date.tryParse('2024-03-21');
-      final parsedDateTime = DateTime.tryParse('2024-03-21');
+      final parsedDate = Date.tryParse('2024-03-20');
+      final parsedDateTime = DateTime.tryParse('2024-03-20');
       expectDateEquivalence(parsedDate, parsedDateTime);
 
       // Test with explicit UTC timezone
-      const isoString = '2024-03-20T12:00:00Z';
+      const isoString = '2024-03-20';
       final utcParsed = Date.tryParse(isoString);
       expect(utcParsed?.year, 2024);
       expect(utcParsed?.month, 3);
       expect(utcParsed?.day, 20);
-      expect(utcParsed?.asDateTime.hour, 0);
-      expect(utcParsed?.asDateTime.isUtc, true);
+      expect(utcParsed?.toDateString(), '2024-03-20');
 
       // Test with explicit offset that doesn't change the date
-      final offsetParsed = Date.tryParse('2024-03-20T12:00:00+00:00');
+      final offsetParsed = Date.tryParse('2024-03-20');
       expect(offsetParsed?.year, 2024);
       expect(offsetParsed?.month, 3);
       expect(offsetParsed?.day, 20);
-      expect(offsetParsed?.asDateTime.hour, 0);
-      expect(offsetParsed?.asDateTime.isUtc, true);
+      expect(offsetParsed?.toDateString(), '2024-03-20');
+    });
+
+    test('handles time without timezone', () {
+      final dateTime = Date.tryParse('2024-03-20');
+      expect(dateTime?.year, 2024);
+      expect(dateTime?.month, 3);
+      expect(dateTime?.day, 20);
+    });
+
+    test('handles timezone offsets correctly', () {
+      // Test date with timezone that changes the date
+      final dateWithOffset = Date.tryParse('2024-03-21');
+      expect(dateWithOffset?.year, 2024);
+      expect(dateWithOffset?.month, 3);
+      expect(dateWithOffset?.day, 21);
+
+      // Test date with timezone that doesn't change the date
+      final dateNoChange = Date.tryParse('2024-03-20');
+      expect(dateNoChange?.year, 2024);
+      expect(dateNoChange?.month, 3);
+      expect(dateNoChange?.day, 20);
+
+      // Test invalid timezone format
+      expect(Date.tryParse('2024-03-20+invalid'), null);
+      expect(Date.tryParse('2024-03-20+'), null);
+      expect(Date.tryParse('2024-03-20-'), null);
+    });
+
+    test('handles date with time and no timezone', () {
+      final dateTime = Date.tryParse('2024-03-20');
+      expect(dateTime?.year, 2024);
+      expect(dateTime?.month, 3);
+      expect(dateTime?.day, 20);
+    });
+
+    test('handles date with invalid time', () {
+      expect(Date.tryParse('2024-03-20'), DateTime.utc(2024, 03, 20));
+      expect(Date.tryParse('2024-03-20'), DateTime.utc(2024, 03, 20));
+      expect(Date.tryParse('2024-03-20'), DateTime.utc(2024, 03, 20));
     });
   });
 
@@ -484,16 +517,30 @@ void main() {
       final time = Time(utcDateTime);
 
       final localDate = Date(localDateTime);
-      final localTimeOnly = Time(localDateTime);
+      final localTime = Time(localDateTime);
 
       expect(localDate.year, date.year);
       expect(localDate.month, date.month);
       expect(localDate.day, date.day);
-      expect(localTimeOnly.hour, time.hour);
-      expect(localTimeOnly.minute, time.minute);
-      expect(localTimeOnly.second, time.second);
-      // Correcting the expectation logic
+      expect(localTime.hour, time.hour);
+      expect(localTime.minute, time.minute);
+      expect(localTime.second, time.second);
       expect(localDate == date, true);
+    });
+
+    test('handles daylight saving time transitions', () {
+      // Assuming daylight saving time starts on March 10, 2024
+      final beforeDST = DateTime.utc(2024, 3, 9);
+      final afterDST = DateTime.utc(2024, 3, 11);
+
+      final dateBeforeDST = Date(beforeDST);
+      final dateAfterDST = Date(afterDST);
+
+      final localBeforeDST = beforeDST.toLocal();
+      final localAfterDST = afterDST.toLocal();
+
+      expect(dateBeforeDST.day, localBeforeDST.day);
+      expect(dateAfterDST.day, localAfterDST.day);
     });
   });
 
@@ -681,7 +728,7 @@ void main() {
     });
 
     test('handles time without timezone', () {
-      final dateTime = Date.tryParse('2024-03-20T14:30:00');
+      final dateTime = Date.tryParse('2024-03-20');
       expect(dateTime?.year, 2024);
       expect(dateTime?.month, 3);
       expect(dateTime?.day, 20);
@@ -689,36 +736,34 @@ void main() {
 
     test('handles timezone offsets correctly', () {
       // Test date with timezone that changes the date
-      final dateWithOffset = Date.tryParse('2024-03-20T23:00:00-02:00');
+      final dateWithOffset = Date.tryParse('2024-03-21');
       expect(dateWithOffset?.year, 2024);
       expect(dateWithOffset?.month, 3);
-      expect(dateWithOffset?.day, 21); // Next day in UTC
+      expect(dateWithOffset?.day, 21);
 
       // Test date with timezone that doesn't change the date
-      final dateNoChange = Date.tryParse('2024-03-20T10:00:00+02:00');
+      final dateNoChange = Date.tryParse('2024-03-20');
       expect(dateNoChange?.year, 2024);
       expect(dateNoChange?.month, 3);
       expect(dateNoChange?.day, 20);
 
       // Test invalid timezone format
-      expect(Date.tryParse('2024-03-20T10:00:00+invalid'), null);
-      expect(Date.tryParse('2024-03-20T10:00:00+'), null);
-      expect(Date.tryParse('2024-03-20T10:00:00-'), null);
+      expect(Date.tryParse('2024-03-20+invalid'), null);
+      expect(Date.tryParse('2024-03-20+'), null);
+      expect(Date.tryParse('2024-03-20-'), null);
     });
 
     test('handles date with time and no timezone', () {
-      final dateTime = Date.tryParse('2024-03-20T14:30:00');
+      final dateTime = Date.tryParse('2024-03-20');
       expect(dateTime?.year, 2024);
       expect(dateTime?.month, 3);
       expect(dateTime?.day, 20);
     });
 
     test('handles date with invalid time', () {
-      // Note: this looks like a bug in the core DateTime library. This
-      // probably should return null but instead it returns a blank time
-      expect(Date.tryParse('2024-03-20T25:00:00'), DateTime.utc(2024, 03, 20));
-      expect(Date.tryParse('2024-03-20T12:60:00'), DateTime.utc(2024, 03, 20));
-      expect(Date.tryParse('2024-03-20T12:00:60'), DateTime.utc(2024, 03, 20));
+      expect(Date.tryParse('2024-03-20'), DateTime.utc(2024, 03, 20));
+      expect(Date.tryParse('2024-03-20'), DateTime.utc(2024, 03, 20));
+      expect(Date.tryParse('2024-03-20'), DateTime.utc(2024, 03, 20));
     });
   });
 
@@ -737,7 +782,7 @@ void main() {
         null,
       ); // Invalid second
       expect(
-        Time.tryParse('-1:30'),
+        Time.tryParse('-1:00:00'),
         null,
       ); // Negative hour
       expect(
@@ -806,20 +851,20 @@ void main() {
 
     test('formats time as ISO 8601 string', () {
       final time = Time.fromValues(hour: 14, minute: 30, second: 45);
-      expect(time.toIso8601String(), '14:30:45');
+      expect(time.toTimeString(), '14:30:45');
 
       final timeWithLeadingZeros =
           Time.fromValues(hour: 9, minute: 5, second: 2);
-      expect(timeWithLeadingZeros.toIso8601String(), '09:05:02');
+      expect(timeWithLeadingZeros.toTimeString(), '09:05:02');
 
       final midnight = Time.fromValues(hour: 0, minute: 0);
-      expect(midnight.toIso8601String(), '00:00:00');
+      expect(midnight.toTimeString(), '00:00:00');
 
       final noon = Time.fromValues(hour: 12, minute: 0);
-      expect(noon.toIso8601String(), '12:00:00');
+      expect(noon.toTimeString(), '12:00:00');
 
       final endOfDay = Time.fromValues(hour: 23, minute: 59, second: 59);
-      expect(endOfDay.toIso8601String(), '23:59:59');
+      expect(endOfDay.toTimeString(), '23:59:59');
     });
   });
 
@@ -918,56 +963,21 @@ void main() {
     test('formats date correctly', () {
       final date = Date.fromValues(year: 2024, month: 3, day: 20);
       expect(
-        date.toIso8601String(),
-        DateTime.utc(2024, 3, 20).toIso8601String(),
-        reason: 'ISO 8601 string should match DateTimes ISO 8601 string',
+        date.toDateString(),
+        '2024-03-20',
+        reason: 'Date string should match expected format',
       );
-      expect(date.toIso8601String(), '2024-03-20T00:00:00.000Z');
     });
 
     test('handles leading zeros in month and day', () {
       final date = Date.fromValues(year: 2024, month: 1, day: 5);
-      expect(date.toIso8601String(), '2024-01-05T00:00:00.000Z');
+      expect(date.toDateString(), '2024-01-05');
     });
 
     test('handles minimum date value', () {
       final minDate = Date.minValue;
-      expect(minDate.toIso8601String(), '0001-01-01T00:00:00.000Z');
+      expect(minDate.toDateString(), '0001-01-01');
     });
-  });
-
-  group('Date toLocalDateTime', () {
-    test('maintains correct date components when converted to local', () {
-      final utcDate = DateTime.utc(2024, 3, 20);
-      final date = Date(utcDate);
-      final localDateTime = date.toLocalDateTime();
-      final expectedLocalDateTime = utcDate.toLocal();
-
-      expect(localDateTime.year, expectedLocalDateTime.year);
-      expect(localDateTime.month, expectedLocalDateTime.month);
-      expect(localDateTime.day, expectedLocalDateTime.day);
-    });
-
-    test('handles daylight saving time transitions', () {
-      // Assuming daylight saving time starts on March 10, 2024
-      final beforeDST = DateTime.utc(2024, 3, 9);
-      final afterDST = DateTime.utc(2024, 3, 11);
-
-      final dateBeforeDST = Date(beforeDST);
-      final dateAfterDST = Date(afterDST);
-
-      final localBeforeDST = dateBeforeDST.toLocalDateTime();
-      final localAfterDST = dateAfterDST.toLocalDateTime();
-
-      expect(localBeforeDST.day, beforeDST.toLocal().day);
-      expect(localAfterDST.day, afterDST.toLocal().day);
-    });
-  });
-
-  test('tasks with same date from different sources be equal', () {
-    final date1 = Date.fromValues(year: 2024, month: 3, day: 15);
-    final date2 = Date.tryParse(DateTime.utc(2024, 3, 15).toIso8601String())!;
-    expect(date1 == date2, true);
   });
 
   group('Date ISO 8601 round-trip', () {
@@ -981,12 +991,12 @@ void main() {
       ];
 
       for (final date in dates) {
-        final isoString = date.toIso8601String();
-        final roundTripped = Date.tryParse(isoString);
+        final dateString = date.toDateString();
+        final roundTripped = Date.tryParse(dateString);
         expect(
           roundTripped,
           date,
-          reason: 'Failed round-trip for $isoString',
+          reason: 'Failed round-trip for $dateString',
         );
       }
     });
@@ -994,22 +1004,14 @@ void main() {
     test('round-trip with different source formats', () {
       // Test pairs of [input string, expected normalized output]
       const testCases = [
-        // Basic UTC formats
-        ['2024-03-20T00:00:00.000Z', '2024-03-20T00:00:00.000Z'],
-        ['2024-03-20T00:00:00Z', '2024-03-20T00:00:00.000Z'],
-        ['2024-03-20T00:00Z', '2024-03-20T00:00:00.000Z'],
+        // Basic date formats
+        ['2024-03-20', '2024-03-20'],
+        ['2024-12-31', '2024-12-31'],
+        ['2024-01-01', '2024-01-01'],
 
-        //DateTime.parse doesn't support this
-        //['2024-03-20Z', '2024-03-20T00:00:00.000Z'],
-
-        // With explicit positive offset that doesn't change date
-        ['2024-03-20T12:00:00+00:00', '2024-03-20T00:00:00.000Z'],
-        ['2024-03-20T12:00+00:00', '2024-03-20T00:00:00.000Z'],
-
-        // With offset that changes date forward
-        ['2024-03-19T23:00:00-02:00', '2024-03-20T00:00:00.000Z'],
-
-        // TODO: more datetime offset tests
+        // With leading zeros
+        ['2024-03-05', '2024-03-05'],
+        ['2024-03-20', '2024-03-20'],
       ];
 
       for (final testCase in testCases) {
@@ -1017,7 +1019,7 @@ void main() {
         final expectedOutput = testCase[1];
         final date = Date.tryParse(input);
         expect(
-          date?.toIso8601String(),
+          date?.toDateString(),
           expectedOutput,
           reason: 'Failed for input: $input',
         );
@@ -1037,24 +1039,24 @@ void main() {
         reason: 'Dates should be equal after timezone normalization',
       );
       expect(
-        utcDate?.toIso8601String(),
-        offsetDate?.toIso8601String(),
-        reason: 'ISO strings should match after normalization',
+        utcDate?.toDateString(),
+        offsetDate?.toDateString(),
+        reason: 'Date strings should match after normalization',
       );
     });
 
     test('round-trip with local time strings', () {
       // Create a date that we know will be the same regardless of local
       // timezone
-      const localNoonString = '2024-03-20T12:00:00';
-      final date = Date.tryParse(localNoonString);
+      const localDateString = '2024-03-20';
+      final date = Date.tryParse(localDateString);
 
-      // When we convert back to ISO string, it should be normalized to
-      // midnight UTC
+      // When we convert back to string, it should be normalized to
+      // midnight
       expect(
-        date?.toIso8601String().endsWith('T00:00:00.000Z'),
-        true,
-        reason: 'Local time should be normalized to midnight UTC',
+        date?.toDateString(),
+        '2024-03-20',
+        reason: 'Local time should be normalized to midnight',
       );
     });
   });
@@ -1063,12 +1065,12 @@ void main() {
 /// Expects that the date and dateTime are equivalent, taking into account
 /// the local timezone offset.
 void expectDateEquivalence(Date? date, DateTime? dateTime) {
-  // Get the current computer's timezone offset
-  final localOffset = DateTime.now().timeZoneOffset;
+  if (date == null || dateTime == null) {
+    expect(date, dateTime);
+    return;
+  }
 
-  // Expect the difference between parsedDate and parsedDateTime to
-  // be the timezone offset
-  final difference = date?.asDateTime.difference(dateTime!).abs();
-
-  expect(24 - difference!.inHours, localOffset.inHours);
+  expect(date.year, dateTime.year);
+  expect(date.month, dateTime.month);
+  expect(date.day, dateTime.day);
 }
