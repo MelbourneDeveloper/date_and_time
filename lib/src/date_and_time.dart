@@ -1,5 +1,31 @@
 import 'dart:async';
 
+/// Combines a [Date] and [Time] into a single record so that enough
+/// information is preserved to reconstruct the [DateTime].
+typedef DateAndTime = ({Date date, Time time});
+
+/// Creates a [DateAndTime] record from a [Date] and [Time].
+DateAndTime createDateAndTime(Date date, Time time) => (date: date, time: time);
+
+/// Convenience extensions on [DateAndTime].
+extension DateAndTimeExtensions on DateAndTime {
+  /// Combines the date and time into a single [DateTime].
+  DateTime toDateTime() => DateTime.utc(
+        date.year,
+        date.month,
+        date.day,
+      );
+}
+
+/// Convenience extensions on [DateTime] for [DateAndTime] conversions.
+extension DateTimeExtensions on DateTime {
+  /// Combines the date and time into a single [DateAndTime] record.
+  DateAndTime toDateAndTime() => (
+        date: Date(this),
+        time: Time(this),
+      );
+}
+
 /// A key used in Zone values to provide custom DateTime implementations.
 /// Any DateTime returned will be converted to UTC before use.
 const nowKey = #CurrentDateKey;
@@ -133,7 +159,7 @@ extension type Date._(DateTime _dateTime) {
       };
 
   /// Parses the date in format YYYY-MM-DD, returning null if the string is
-  /// invalid. 
+  /// invalid.
   static Date? tryParse(String dateString) {
     if (dateString.isEmpty) {
       return null;
@@ -176,6 +202,11 @@ extension type Date._(DateTime _dateTime) {
 
   /// The day of the week (1-7, where 1 is Monday) in UTC
   int get weekday => _dateTime.weekday;
+
+  /// Returns the date as a string in format YYYY-MM-DD.
+  String toDateString() =>
+      '${year.toString().padLeft(4, '0')}-${month.toString().padLeft(2, '0')}'
+      '-${day.toString().padLeft(2, '0')}';
 }
 
 /// An immutable type representing a time of day without date components.
@@ -304,6 +335,11 @@ extension type Time._(DateTime _dateTime) {
   /// Both times are compared in UTC, ensuring consistent results across
   /// timezones.
   int compareTo(Time other) => totalSeconds - other.totalSeconds;
+
+  /// Returns the time as a string in format HH:MM:SS.
+  String toTimeString() =>
+      '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}'
+      ':${second.toString().padLeft(2, '0')}';
 }
 
 /// Convenience extensions, not to be exported

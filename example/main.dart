@@ -22,7 +22,7 @@ void demonstrateDateOperations() {
 
   // Show today's date
   final today = Date.today();
-  print('Today is: ${today.toIso8601String()}');
+  print('Today is: ${today.toDateString()}');
 
   // Get user input for a date
   print('\nEnter a date (YYYY-MM-DD):');
@@ -34,7 +34,7 @@ void demonstrateDateOperations() {
     return;
   }
 
-  print('You entered: ${userDate.toIso8601String()}');
+  print('You entered: ${userDate.toDateString()}');
   print('Year: ${userDate.year}');
   print('Month: ${userDate.month}');
   print('Day: ${userDate.day}');
@@ -44,8 +44,8 @@ void demonstrateDateOperations() {
   final tomorrow = userDate.add(const Duration(days: 1));
   final yesterday = userDate.subtract(const Duration(days: 1));
 
-  print('\nTomorrow will be: ${tomorrow.toIso8601String()}');
-  print('Yesterday was: ${yesterday.toIso8601String()}');
+  print('\nTomorrow will be: ${tomorrow.toDateString()}');
+  print('Yesterday was: ${yesterday.toDateString()}');
 }
 
 void demonstrateTimeOperations() {
@@ -54,7 +54,7 @@ void demonstrateTimeOperations() {
 
   // Show current time
   final now = Time.now();
-  print('Current time is: ${now.toIso8601String()}');
+  print('Current time is: ${now.toTimeString()}');
 
   // Get user input for a time
   print('\nEnter a time (HH:MM:SS or HH:MM):');
@@ -66,7 +66,7 @@ void demonstrateTimeOperations() {
     return;
   }
 
-  print('You entered: ${userTime.toIso8601String()}');
+  print('You entered: ${userTime.toTimeString()}');
   print('Hour: ${userTime.hour}');
   print('Minute: ${userTime.minute}');
   print('Second: ${userTime.second}');
