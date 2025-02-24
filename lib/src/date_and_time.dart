@@ -62,7 +62,7 @@ String get nowAsIso8601 => now.toIso8601String();
 /// Gets the current local date and time as a [DateTime].
 ///
 /// This is a convenience getter that returns the current UTC time converted to
-/// local time. Note that this converts from UTC to local time, so the date 
+/// local time. Note that this converts from UTC to local time, so the date
 /// might change depending on the timezone offset.
 ///
 /// Note: you can mock the current time by setting the [nowKey] in the Zone to
@@ -132,19 +132,27 @@ extension type Date._(DateTime _dateTime) {
         _ => Date(_utcNow),
       };
 
-  /// Parses an ISO 8601 date string, returning null if the string is invalid.
-  /// If the input string includes timezone information, it will be converted
-  /// to UTC. The resulting Date will always be in UTC. 
-  /// 
-  /// ⚠️ you should always generate the ISO string using [toIso8601String] 
-  /// because it includes the Z suffix to indicate UTC. If the string does
-  /// not include the Z suffix, the date will be assumed to be in the local
-  /// timezone, and will get converted to UTC.
-  static Date? tryParse(String isoString) =>
-      switch (DateTime.tryParse(isoString)) {
-        final DateTime dateTime => Date(dateTime),
-        _ => null
-      };
+  /// Parses the date in format YYYY-MM-DD, returning null if the string is
+  /// invalid. 
+  static Date? tryParse(String dateString) {
+    if (dateString.isEmpty) {
+      return null;
+    }
+
+    final date = dateString.split('-');
+
+    if (date.length != 3) {
+      return null;
+    }
+
+    final year = int.tryParse(date[0]);
+    final month = int.tryParse(date[1]);
+    final day = int.tryParse(date[2]);
+
+    if (year == null || month == null || day == null) {}
+
+    return Date.fromValues(year: year!, month: month!, day: day!);
+  }
 
   /// The minimum possible Date value (0001-01-01) in UTC
   static Date minValue = Date(DateTime.utc(1));
@@ -168,21 +176,6 @@ extension type Date._(DateTime _dateTime) {
 
   /// The day of the week (1-7, where 1 is Monday) in UTC
   int get weekday => _dateTime.weekday;
-
-  /// Converts this [Date] to an ISO 8601 DateTime string.
-  /// The output will always represent UTC, and include the time component 
-  /// (00:00:00). This is because the [Date] type is a wrapper around a 
-  /// [DateTime], and the [DateTime] type includes the time component.
-  String toIso8601String() => _dateTime.toIso8601String();
-
-  /// Returns the underlying UTC [DateTime]. The time component will always be
-  /// 00:00:00 UTC.
-  DateTime get asDateTime => _dateTime;
-
-  /// Returns the underlying UTC [DateTime] converted to local timezone.
-  /// The time component will always be 00:00:00 in the local timezone.
-  /// This is primarily used for display purposes.
-  DateTime toLocalDateTime() => _dateTime.toLocal();
 }
 
 /// An immutable type representing a time of day without date components.
@@ -214,7 +207,7 @@ extension type Time._(DateTime _dateTime) {
               ),
             );
 
-  /// Creates a [Time] from hour, minute, and optional second values. The 
+  /// Creates a [Time] from hour, minute, and optional second values. The
   /// resulting [Time] will be in UTC.
   Time.fromValues({required int hour, required int minute, int second = 0})
       : _dateTime = DateTime.utc(0, 1, 1, hour, minute, second);
@@ -231,8 +224,8 @@ extension type Time._(DateTime _dateTime) {
         _ => Time(_utcNow),
       };
 
-  /// Parses a time string in the format "HH:mm" or "HH:mm:ss", returning null 
-  /// if invalid. The input is assumed to be in UTC. If timezone 
+  /// Parses a time string in the format "HH:mm" or "HH:mm:ss", returning null
+  /// if invalid. The input is assumed to be in UTC. If timezone
   /// information is provided, it will be converted to UTC.
   ///
   /// Example:
@@ -281,7 +274,7 @@ extension type Time._(DateTime _dateTime) {
     };
   }
 
-  /// Validates if the given hour, minute, and second values represent a valid 
+  /// Validates if the given hour, minute, and second values represent a valid
   /// UTC time
   static bool _isValid(int hour, int minute, int second) =>
       hour >= 0 &&
@@ -308,15 +301,9 @@ extension type Time._(DateTime _dateTime) {
   /// * positive if this time is later than other
   /// * zero if the times are equal
   ///
-  /// Both times are compared in UTC, ensuring consistent results across 
+  /// Both times are compared in UTC, ensuring consistent results across
   /// timezones.
   int compareTo(Time other) => totalSeconds - other.totalSeconds;
-
-  /// Converts this Time to an ISO 8601 string.
-  /// The output represents the time in UTC without timezone information.
-  String toIso8601String() => '${hour.toString().padLeft(2, '0')}:'
-      '${minute.toString().padLeft(2, '0')}:'
-      '${second.toString().padLeft(2, '0')}';
 }
 
 /// Convenience extensions, not to be exported
