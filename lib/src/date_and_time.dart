@@ -9,7 +9,7 @@ DateAndTime createDateAndTime(Date date, Time time) => (date: date, time: time);
 
 /// Convenience extensions on [DateAndTime].
 extension DateAndTimeExtensions on DateAndTime {
-  /// Combines the date and time into a single [DateTime].
+  /// Combines the date and time into a single [DateTime], which is UTC.
   DateTime toDateTime() => DateTime.utc(
         date.year,
         date.month,
@@ -18,6 +18,9 @@ extension DateAndTimeExtensions on DateAndTime {
         time.minute,
         time.second,
       );
+
+  /// Converts the UTC [DateAndTime] to a [DateTime] in the local timezone.
+  DateTime toDateTimeLocal() => toDateTime().toLocal();
 }
 
 /// Convenience extensions on [DateTime] for [DateAndTime] conversions.

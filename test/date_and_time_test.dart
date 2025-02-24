@@ -955,6 +955,29 @@ void main() {
       expect(roundTrip.minute, utcDateTime.minute);
       expect(roundTrip.second, utcDateTime.second);
     });
+
+    test('converts to local DateTime', () {
+      final date = Date.fromValues(year: 2024, month: 3, day: 20);
+      final time = Time.fromValues(hour: 14, minute: 30, second: 45);
+      final dateAndTime = createDateAndTime(date, time);
+
+      final localDateTime = dateAndTime.toDateTimeLocal();
+      expect(localDateTime.isUtc, false);
+
+      // Convert back to UTC for comparison
+      final backToUtc = localDateTime.toUtc();
+      expect(backToUtc.year, 2024);
+      expect(backToUtc.month, 3);
+      expect(backToUtc.day, 20);
+      expect(backToUtc.hour, 14);
+      expect(backToUtc.minute, 30);
+      expect(backToUtc.second, 45);
+
+      // Test round-trip through DateAndTime
+      final roundTrip = localDateTime.toDateAndTime();
+      expect(roundTrip.date, date);
+      expect(roundTrip.time, time);
+    });
   });
 
   group('DateTime extensions', () {
