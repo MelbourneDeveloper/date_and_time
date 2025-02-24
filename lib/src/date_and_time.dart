@@ -179,6 +179,22 @@ extension type Date._(DateTime _dateTime) {
       return null;
     }
 
+    // Validate year (1-9999)
+    if (year < 1 || year > 9999) {
+      return null;
+    }
+
+    // Validate month (1-12)
+    if (month < 1 || month > 12) {
+      return null;
+    }
+
+    // Validate day based on month and year
+    final daysInMonth = DateTime.utc(year, month + 1, 0).day;
+    if (day < 1 || day > daysInMonth) {
+      return null;
+    }
+
     return Date.fromValues(year: year, month: month, day: day);
   }
 

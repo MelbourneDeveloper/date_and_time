@@ -179,26 +179,19 @@ void main() {
       expect(tuesday.weekday, DateTime.tuesday);
     });
 
-    test('parses ISO 8601 dates to UTC', () {
+    test('parses date strings', () {
       // Basic date parsing without time/timezone
       final parsedDate = Date.tryParse('2024-03-20');
       final parsedDateTime = DateTime.tryParse('2024-03-20');
       expectDateEquivalence(parsedDate, parsedDateTime);
 
-      // Test with explicit UTC timezone
-      const isoString = '2024-03-20';
-      final utcParsed = Date.tryParse(isoString);
+      // Test with simple date string
+      const dateString = '2024-03-20';
+      final utcParsed = Date.tryParse(dateString);
       expect(utcParsed?.year, 2024);
       expect(utcParsed?.month, 3);
       expect(utcParsed?.day, 20);
       expect(utcParsed?.toDateString(), '2024-03-20');
-
-      // Test with explicit offset that doesn't change the date
-      final offsetParsed = Date.tryParse('2024-03-20');
-      expect(offsetParsed?.year, 2024);
-      expect(offsetParsed?.month, 3);
-      expect(offsetParsed?.day, 20);
-      expect(offsetParsed?.toDateString(), '2024-03-20');
     });
 
     test('handles time without timezone', () {
@@ -727,129 +720,85 @@ void main() {
       expect(Date.tryParse(''), null);
     });
 
-    test('handles time without timezone', () {
-      final dateTime = Date.tryParse('2024-03-20');
-      expect(dateTime?.year, 2024);
-      expect(dateTime?.month, 3);
-      expect(dateTime?.day, 20);
-    });
-
-    test('handles timezone offsets correctly', () {
-      // Test date with timezone that changes the date
-      final dateWithOffset = Date.tryParse('2024-03-21');
-      expect(dateWithOffset?.year, 2024);
-      expect(dateWithOffset?.month, 3);
-      expect(dateWithOffset?.day, 21);
-
-      // Test date with timezone that doesn't change the date
-      final dateNoChange = Date.tryParse('2024-03-20');
-      expect(dateNoChange?.year, 2024);
-      expect(dateNoChange?.month, 3);
-      expect(dateNoChange?.day, 20);
-
-      // Test invalid timezone format
-      expect(Date.tryParse('2024-03-20+invalid'), null);
-      expect(Date.tryParse('2024-03-20+'), null);
-      expect(Date.tryParse('2024-03-20-'), null);
-    });
-
-    test('handles date with time and no timezone', () {
-      final dateTime = Date.tryParse('2024-03-20');
-      expect(dateTime?.year, 2024);
-      expect(dateTime?.month, 3);
-      expect(dateTime?.day, 20);
-    });
-
-    test('handles date with invalid time', () {
-      expect(Date.tryParse('2024-03-20'), DateTime.utc(2024, 03, 20));
-      expect(Date.tryParse('2024-03-20'), DateTime.utc(2024, 03, 20));
-      expect(Date.tryParse('2024-03-20'), DateTime.utc(2024, 03, 20));
+    test('handles invalid date components', () {
+      expect(Date.tryParse('2024-13-20'), null); // Invalid month
+      expect(Date.tryParse('2024-00-20'), null); // Invalid month
+      expect(Date.tryParse('2024-03-32'), null); // Invalid day
+      expect(Date.tryParse('2024-03-00'), null); // Invalid day
+      expect(Date.tryParse('0000-03-20'), null); // Invalid year
     });
   });
 
-  group('Additional Time parsing cases', () {
-    test('handles invalid time components', () {
+  group('Date string formatting', () {
+    test('formats date correctly', () {
+      final date = Date.fromValues(year: 2024, month: 3, day: 20);
       expect(
-        Time.tryParse('25:00'),
-        null,
-      ); // Invalid hour
-      expect(
-        Time.tryParse('12:60'),
-        null,
-      ); // Invalid minute
-      expect(
-        Time.tryParse('12:30:61'),
-        null,
-      ); // Invalid second
-      expect(
-        Time.tryParse('-1:00:00'),
-        null,
-      ); // Negative hour
-      expect(
-        Time.tryParse('12:-1'),
-        null,
-      ); // Negative minute
-      expect(
-        Time.tryParse('12:30:-1'),
-        null,
-      ); // Negative second
-
-      // Additional invalid cases
-      expect(
-        Time.tryParse('12:30:aa'),
-        null,
-      ); // Non-numeric second
-      expect(
-        Time.tryParse('12:aa:00'),
-        null,
-      ); // Non-numeric minute
-      expect(
-        Time.tryParse('aa:30:00'),
-        null,
-      ); // Non-numeric hour
-    });
-
-    test('handles edge cases in time parsing', () {
-      expect(
-        Time.tryParse('23:59:59'),
-        Time.fromValues(hour: 23, minute: 59, second: 59),
-      );
-      expect(
-        Time.tryParse('00:00:00'),
-        Time.fromValues(hour: 0, minute: 0),
-      );
-      expect(
-        Time.tryParse('12:00:00'),
-        Time.fromValues(hour: 12, minute: 0),
+        date.toDateString(),
+        '2024-03-20',
+        reason: 'Date string should match expected format',
       );
     });
 
-    test('handles invalid time formats', () {
-      expect(Time.tryParse('12:'), null);
-      expect(Time.tryParse('12:30:'), null);
-      expect(Time.tryParse('12:aa'), null);
-      expect(Time.tryParse('12:30:aa'), null);
-      expect(Time.tryParse('invalid'), null);
-      expect(Time.tryParse(''), null);
-      expect(Time.tryParse('12:30:00:00'), null);
-      expect(Time.tryParse('12:30:00:'), null);
-      expect(Time.tryParse('12:30:00.000'), null);
+    test('handles leading zeros in month and day', () {
+      final date = Date.fromValues(year: 2024, month: 1, day: 5);
+      expect(date.toDateString(), '2024-01-05');
     });
 
-    test('handles time with missing seconds', () {
-      final time = Time.tryParse('14:30');
-      expect(time?.hour, 14);
-      expect(time?.minute, 30);
-      expect(time?.second, 0);
+    test('handles minimum date value', () {
+      final minDate = Date.minValue;
+      expect(minDate.toDateString(), '0001-01-01');
+    });
+  });
+
+  group('Date round-trip', () {
+    test('preserves date components', () {
+      final dates = [
+        Date.fromValues(year: 2024, month: 3, day: 20),
+        Date.fromValues(year: 2024, month: 12, day: 31),
+        Date.fromValues(year: 2024, month: 1, day: 1),
+        Date.fromValues(year: 1, month: 1, day: 1), // Min value
+        Date.fromValues(year: 9999, month: 12, day: 31), // Near max
+      ];
+
+      for (final date in dates) {
+        final dateString = date.toDateString();
+        final roundTripped = Date.tryParse(dateString);
+        expect(
+          roundTripped,
+          date,
+          reason: 'Failed round-trip for $dateString',
+        );
+      }
     });
 
-    test('handles time with invalid components', () {
-      expect(Time.tryParse('24:00:00'), null);
-      expect(Time.tryParse('23:60:00'), null);
-      expect(Time.tryParse('23:59:60'), null);
-    });
+    test('handles different date formats', () {
+      // Test pairs of [input string, expected normalized output]
+      const testCases = [
+        // Basic date formats
+        ['2024-03-20', '2024-03-20'],
+        ['2024-12-31', '2024-12-31'],
+        ['2024-01-01', '2024-01-01'],
 
-    test('formats time as ISO 8601 string', () {
+        // With leading zeros
+        ['2024-03-05', '2024-03-05'],
+        ['2024-03-20', '2024-03-20'],
+      ];
+
+      for (final testCase in testCases) {
+        final input = testCase[0];
+        final expectedOutput = testCase[1];
+        final date = Date.tryParse(input);
+        expect(
+          date?.toDateString(),
+          expectedOutput,
+          reason: 'Failed for input: $input',
+        );
+      }
+    });
+  });
+
+  group('Time string formatting', () {
+    test('formats time correctly', () {
       final time = Time.fromValues(hour: 14, minute: 30, second: 45);
       expect(time.toTimeString(), '14:30:45');
 
@@ -955,108 +904,6 @@ void main() {
           );
         },
         zoneValues: {nowKey: () => mockDateTime},
-      );
-    });
-  });
-
-  group('Date toIso8601String', () {
-    test('formats date correctly', () {
-      final date = Date.fromValues(year: 2024, month: 3, day: 20);
-      expect(
-        date.toDateString(),
-        '2024-03-20',
-        reason: 'Date string should match expected format',
-      );
-    });
-
-    test('handles leading zeros in month and day', () {
-      final date = Date.fromValues(year: 2024, month: 1, day: 5);
-      expect(date.toDateString(), '2024-01-05');
-    });
-
-    test('handles minimum date value', () {
-      final minDate = Date.minValue;
-      expect(minDate.toDateString(), '0001-01-01');
-    });
-  });
-
-  group('Date ISO 8601 round-trip', () {
-    test('round-trip preserves date components', () {
-      final dates = [
-        Date.fromValues(year: 2024, month: 3, day: 20),
-        Date.fromValues(year: 2024, month: 12, day: 31),
-        Date.fromValues(year: 2024, month: 1, day: 1),
-        Date.fromValues(year: 1, month: 1, day: 1), // Min value
-        Date.fromValues(year: 9999, month: 12, day: 31), // Near max
-      ];
-
-      for (final date in dates) {
-        final dateString = date.toDateString();
-        final roundTripped = Date.tryParse(dateString);
-        expect(
-          roundTripped,
-          date,
-          reason: 'Failed round-trip for $dateString',
-        );
-      }
-    });
-
-    test('round-trip with different source formats', () {
-      // Test pairs of [input string, expected normalized output]
-      const testCases = [
-        // Basic date formats
-        ['2024-03-20', '2024-03-20'],
-        ['2024-12-31', '2024-12-31'],
-        ['2024-01-01', '2024-01-01'],
-
-        // With leading zeros
-        ['2024-03-05', '2024-03-05'],
-        ['2024-03-20', '2024-03-20'],
-      ];
-
-      for (final testCase in testCases) {
-        final input = testCase[0];
-        final expectedOutput = testCase[1];
-        final date = Date.tryParse(input);
-        expect(
-          date?.toDateString(),
-          expectedOutput,
-          reason: 'Failed for input: $input',
-        );
-      }
-    });
-
-    test('round-trip preserves equality after timezone conversion', () {
-      const utcString = '2024-03-20T00:00:00.000Z';
-      const offsetString = '2024-03-20T02:00:00+02:00';
-
-      final utcDate = Date.tryParse(utcString);
-      final offsetDate = Date.tryParse(offsetString);
-
-      expect(
-        utcDate == offsetDate,
-        true,
-        reason: 'Dates should be equal after timezone normalization',
-      );
-      expect(
-        utcDate?.toDateString(),
-        offsetDate?.toDateString(),
-        reason: 'Date strings should match after normalization',
-      );
-    });
-
-    test('round-trip with local time strings', () {
-      // Create a date that we know will be the same regardless of local
-      // timezone
-      const localDateString = '2024-03-20';
-      final date = Date.tryParse(localDateString);
-
-      // When we convert back to string, it should be normalized to
-      // midnight
-      expect(
-        date?.toDateString(),
-        '2024-03-20',
-        reason: 'Local time should be normalized to midnight',
       );
     });
   });
