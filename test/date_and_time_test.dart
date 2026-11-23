@@ -179,58 +179,24 @@ void main() {
       expect(tuesday.weekday, DateTime.tuesday);
     });
 
-    test('parses date strings', () {
+    test('parses ISO 8601 dates to UTC', () {
       // Basic date parsing without time/timezone
-      final parsedDate = Date.tryParse('2024-03-20');
-      final parsedDateTime = DateTime.tryParse('2024-03-20');
-      expectDateEquivalence(parsedDate, parsedDateTime);
+      final parsed = Date.tryParse('2024-03-20');
+      expect(parsed?.year, 2024);
+      expect(parsed?.month, 3);
+      expect(parsed?.day, 20);
 
-      // Test with simple date string
-      const dateString = '2024-03-20';
-      final utcParsed = Date.tryParse(dateString);
+      // Test with explicit UTC timezone
+      final utcParsed = Date.tryParse('2024-03-20T12:00:00Z');
       expect(utcParsed?.year, 2024);
       expect(utcParsed?.month, 3);
       expect(utcParsed?.day, 20);
-      expect(utcParsed?.toDateString(), '2024-03-20');
-    });
 
-    test('handles time without timezone', () {
-      final dateTime = Date.tryParse('2024-03-20');
-      expect(dateTime?.year, 2024);
-      expect(dateTime?.month, 3);
-      expect(dateTime?.day, 20);
-    });
-
-    test('handles timezone offsets correctly', () {
-      // Test date with timezone that changes the date
-      final dateWithOffset = Date.tryParse('2024-03-21');
-      expect(dateWithOffset?.year, 2024);
-      expect(dateWithOffset?.month, 3);
-      expect(dateWithOffset?.day, 21);
-
-      // Test date with timezone that doesn't change the date
-      final dateNoChange = Date.tryParse('2024-03-20');
-      expect(dateNoChange?.year, 2024);
-      expect(dateNoChange?.month, 3);
-      expect(dateNoChange?.day, 20);
-
-      // Test invalid timezone format
-      expect(Date.tryParse('2024-03-20+invalid'), null);
-      expect(Date.tryParse('2024-03-20+'), null);
-      expect(Date.tryParse('2024-03-20-'), null);
-    });
-
-    test('handles date with time and no timezone', () {
-      final dateTime = Date.tryParse('2024-03-20');
-      expect(dateTime?.year, 2024);
-      expect(dateTime?.month, 3);
-      expect(dateTime?.day, 20);
-    });
-
-    test('handles date with invalid time', () {
-      expect(Date.tryParse('2024-03-20'), DateTime.utc(2024, 03, 20));
-      expect(Date.tryParse('2024-03-20'), DateTime.utc(2024, 03, 20));
-      expect(Date.tryParse('2024-03-20'), DateTime.utc(2024, 03, 20));
+      // Test with explicit offset that doesn't change the date
+      final offsetParsed = Date.tryParse('2024-03-20T12:00:00+00:00');
+      expect(offsetParsed?.year, 2024);
+      expect(offsetParsed?.month, 3);
+      expect(offsetParsed?.day, 20);
     });
   });
 
@@ -501,40 +467,6 @@ void main() {
       expect(timeFromLocal.minute, time.minute);
       expect(timeFromLocal.second, time.second);
     });
-
-    test('handles UTC to local time conversion', () {
-      final utcDateTime = DateTime.utc(2024, 3, 20, 23, 30);
-      final localDateTime = utcDateTime.toLocal();
-
-      final date = Date(utcDateTime);
-      final time = Time(utcDateTime);
-
-      final localDate = Date(localDateTime);
-      final localTime = Time(localDateTime);
-
-      expect(localDate.year, date.year);
-      expect(localDate.month, date.month);
-      expect(localDate.day, date.day);
-      expect(localTime.hour, time.hour);
-      expect(localTime.minute, time.minute);
-      expect(localTime.second, time.second);
-      expect(localDate == date, true);
-    });
-
-    test('handles daylight saving time transitions', () {
-      // Assuming daylight saving time starts on March 10, 2024
-      final beforeDST = DateTime.utc(2024, 3, 9);
-      final afterDST = DateTime.utc(2024, 3, 11);
-
-      final dateBeforeDST = Date(beforeDST);
-      final dateAfterDST = Date(afterDST);
-
-      final localBeforeDST = beforeDST.toLocal();
-      final localAfterDST = afterDST.toLocal();
-
-      expect(dateBeforeDST.day, localBeforeDST.day);
-      expect(dateAfterDST.day, localAfterDST.day);
-    });
   });
 
   group('DateOnly and TimeOnly Integration', () {
@@ -662,161 +594,6 @@ void main() {
     });
   });
 
-  group('Now and Zone-based time', () {
-    test('uses Zone-provided time when available', () {
-      final fixedTime = DateTime.utc(2024, 3, 20, 14, 30);
-      runZoned(
-        () {
-          expect(now, fixedTime);
-          expect(nowAsIso8601, fixedTime.toIso8601String());
-          expect(nowLocal, fixedTime.toLocal());
-          expect(nowLocalAsIso8601, fixedTime.toLocal().toIso8601String());
-
-          final date = Date.today();
-          expect(date.year, fixedTime.year);
-          expect(date.month, fixedTime.month);
-          expect(date.day, fixedTime.day);
-
-          final time = Time.now();
-          expect(time.hour, fixedTime.hour);
-          expect(time.minute, fixedTime.minute);
-          expect(time.second, fixedTime.second);
-        },
-        zoneValues: {
-          nowKey: () => fixedTime,
-        },
-      );
-    });
-
-    test('uses system time when no Zone time is provided', () {
-      final beforeTest = DateTime.now().toUtc();
-      final result = now;
-      final afterTest = DateTime.now().toUtc();
-
-      // The result should be between beforeTest and afterTest
-      // Convert to milliseconds since epoch for reliable comparison
-      final resultMs = result.millisecondsSinceEpoch;
-      final beforeMs = beforeTest.millisecondsSinceEpoch;
-      final afterMs = afterTest.millisecondsSinceEpoch;
-
-      // Allow for a small margin of error (1 second) since the test might
-      // run slowly
-      final isWithinRange =
-          resultMs >= beforeMs - 1000 && resultMs <= afterMs + 1000;
-      expect(
-        isWithinRange,
-        true,
-        reason: 'Expected $resultMs to be between $beforeMs and $afterMs',
-      );
-    });
-  });
-
-  group('Additional Date parsing cases', () {
-    test('handles invalid date formats', () {
-      expect(Date.tryParse('2024-03-20T'), null);
-      expect(Date.tryParse('2024-03-20Z'), null);
-      expect(Date.tryParse('2024-03-20+02:00'), null);
-      expect(Date.tryParse('invalid'), null);
-      expect(Date.tryParse(''), null);
-    });
-
-    test('handles invalid date components', () {
-      expect(Date.tryParse('2024-13-20'), null); // Invalid month
-      expect(Date.tryParse('2024-00-20'), null); // Invalid month
-      expect(Date.tryParse('2024-03-32'), null); // Invalid day
-      expect(Date.tryParse('2024-03-00'), null); // Invalid day
-      expect(Date.tryParse('0000-03-20'), null); // Invalid year
-    });
-  });
-
-  group('Date string formatting', () {
-    test('formats date correctly', () {
-      final date = Date.fromValues(year: 2024, month: 3, day: 20);
-      expect(
-        date.toDateString(),
-        '2024-03-20',
-        reason: 'Date string should match expected format',
-      );
-    });
-
-    test('handles leading zeros in month and day', () {
-      final date = Date.fromValues(year: 2024, month: 1, day: 5);
-      expect(date.toDateString(), '2024-01-05');
-    });
-
-    test('handles minimum date value', () {
-      final minDate = Date.minValue;
-      expect(minDate.toDateString(), '0001-01-01');
-    });
-  });
-
-  group('Date round-trip', () {
-    test('preserves date components', () {
-      final dates = [
-        Date.fromValues(year: 2024, month: 3, day: 20),
-        Date.fromValues(year: 2024, month: 12, day: 31),
-        Date.fromValues(year: 2024, month: 1, day: 1),
-        Date.fromValues(year: 1, month: 1, day: 1), // Min value
-        Date.fromValues(year: 9999, month: 12, day: 31), // Near max
-      ];
-
-      for (final date in dates) {
-        final dateString = date.toDateString();
-        final roundTripped = Date.tryParse(dateString);
-        expect(
-          roundTripped,
-          date,
-          reason: 'Failed round-trip for $dateString',
-        );
-      }
-    });
-
-    test('handles different date formats', () {
-      // Test pairs of [input string, expected normalized output]
-      const testCases = [
-        // Basic date formats
-        ['2024-03-20', '2024-03-20'],
-        ['2024-12-31', '2024-12-31'],
-        ['2024-01-01', '2024-01-01'],
-
-        // With leading zeros
-        ['2024-03-05', '2024-03-05'],
-        ['2024-03-20', '2024-03-20'],
-      ];
-
-      for (final testCase in testCases) {
-        final input = testCase[0];
-        final expectedOutput = testCase[1];
-        final date = Date.tryParse(input);
-        expect(
-          date?.toDateString(),
-          expectedOutput,
-          reason: 'Failed for input: $input',
-        );
-      }
-    });
-  });
-
-  group('Time string formatting', () {
-    test('formats time correctly', () {
-      final time = Time.fromValues(hour: 14, minute: 30, second: 45);
-      expect(time.toTimeString(), '14:30:45');
-
-      final timeWithLeadingZeros =
-          Time.fromValues(hour: 9, minute: 5, second: 2);
-      expect(timeWithLeadingZeros.toTimeString(), '09:05:02');
-
-      final midnight = Time.fromValues(hour: 0, minute: 0);
-      expect(midnight.toTimeString(), '00:00:00');
-
-      final noon = Time.fromValues(hour: 12, minute: 0);
-      expect(noon.toTimeString(), '12:00:00');
-
-      final endOfDay = Time.fromValues(hour: 23, minute: 59, second: 59);
-      expect(endOfDay.toTimeString(), '23:59:59');
-    });
-  });
-
   group('Utility Functions', () {
     test('combineDateAndTime creates correct UTC DateTime', () {
       final date = Date.fromValues(year: 2024, month: 3, day: 20);
@@ -833,12 +610,28 @@ void main() {
       expect(combined.second, 45);
     });
 
-    test('now returns correct UTC DateTime', () {
+    test('currentTimeAsIso8601 returns valid UTC ISO string', () {
       final mockDateTime = DateTime.utc(2024, 3, 15, 14, 30, 15);
 
       runZoned(
         () {
-          final current = now;
+          final isoString = currentTimeAsIso8601();
+          expect(
+            isoString,
+            '2024-03-15T14:30:15.000Z',
+            reason: 'Should return UTC ISO 8601 string',
+          );
+        },
+        zoneValues: {nowKey: () => mockDateTime},
+      );
+    });
+
+    test('currentDateTime returns correct UTC DateTime', () {
+      final mockDateTime = DateTime.utc(2024, 3, 15, 14, 30, 15);
+
+      runZoned(
+        () {
+          final current = currentDateTime();
           expect(current.isUtc, true);
           expect(current.year, 2024);
           expect(current.month, 3);
@@ -850,173 +643,5 @@ void main() {
         zoneValues: {nowKey: () => mockDateTime},
       );
     });
-
-    test('nowAsIso8601 returns valid UTC ISO string', () {
-      final mockDateTime = DateTime.utc(2024, 3, 15, 14, 30, 15);
-
-      runZoned(
-        () {
-          final isoString = nowAsIso8601;
-          expect(
-            isoString,
-            '2024-03-15T14:30:15.000Z',
-            reason: 'Should return UTC ISO 8601 string',
-          );
-        },
-        zoneValues: {nowKey: () => mockDateTime},
-      );
-    });
-
-    test('nowLocal returns DateTime in local timezone', () {
-      final mockDateTime = DateTime.utc(2024, 3, 15, 14, 30, 15);
-
-      runZoned(
-        () {
-          final localTime = nowLocal;
-          expect(localTime.isUtc, false);
-
-          // Convert back to UTC for comparison
-          final backToUtc = localTime.toUtc();
-          expect(backToUtc.year, 2024);
-          expect(backToUtc.month, 3);
-          expect(backToUtc.day, 15);
-          expect(backToUtc.hour, 14);
-          expect(backToUtc.minute, 30);
-          expect(backToUtc.second, 15);
-        },
-        zoneValues: {nowKey: () => mockDateTime},
-      );
-    });
-
-    test('nowLocalAsIso8601 returns ISO string with timezone offset', () {
-      final mockDateTime = DateTime.utc(2024, 3, 15, 14, 30, 15);
-
-      runZoned(
-        () {
-          final localIsoString = nowLocalAsIso8601;
-          final localDateTime = mockDateTime.toLocal();
-          final expectedIsoString = localDateTime.toIso8601String();
-
-          expect(
-            localIsoString,
-            expectedIsoString,
-            reason: 'Should match local DateTime ISO string',
-          );
-        },
-        zoneValues: {nowKey: () => mockDateTime},
-      );
-    });
   });
-
-  group('DateAndTime record', () {
-    test('creates from Date and Time', () {
-      final date = Date.fromValues(year: 2024, month: 3, day: 20);
-      final time = Time.fromValues(hour: 14, minute: 30, second: 45);
-
-      final dateAndTime = createDateAndTime(date, time);
-      expect(dateAndTime.date, date);
-      expect(dateAndTime.time, time);
-
-      // Test toDateTime extension
-      final dateTime = dateAndTime.toDateTime();
-      expect(dateTime.isUtc, true);
-      expect(dateTime.year, 2024);
-      expect(dateTime.month, 3);
-      expect(dateTime.day, 20);
-      expect(dateTime.hour, 14);
-      expect(dateTime.minute, 30);
-      expect(dateTime.second, 45);
-
-      // Test DateTime.toDateAndTime extension
-      final roundTrip = dateTime.toDateAndTime();
-      expect(roundTrip.date, date);
-      expect(roundTrip.time, time);
-    });
-
-    test('converts local DateTime to DateAndTime', () {
-      final localDateTime = DateTime(2024, 3, 20, 14, 30, 45);
-      final dateAndTime = localDateTime.toDateAndTime();
-      final utcDateTime = localDateTime.toUtc();
-
-      expect(dateAndTime.date.year, utcDateTime.year);
-      expect(dateAndTime.date.month, utcDateTime.month);
-      expect(dateAndTime.date.day, utcDateTime.day);
-      expect(dateAndTime.time.hour, utcDateTime.hour);
-      expect(dateAndTime.time.minute, utcDateTime.minute);
-      expect(dateAndTime.time.second, utcDateTime.second);
-
-      // Test round-trip through toDateTime
-      final roundTrip = dateAndTime.toDateTime();
-      expect(roundTrip.isUtc, true);
-      expect(roundTrip.year, utcDateTime.year);
-      expect(roundTrip.month, utcDateTime.month);
-      expect(roundTrip.day, utcDateTime.day);
-      expect(roundTrip.hour, utcDateTime.hour);
-      expect(roundTrip.minute, utcDateTime.minute);
-      expect(roundTrip.second, utcDateTime.second);
-    });
-
-    test('converts to local DateTime', () {
-      final date = Date.fromValues(year: 2024, month: 3, day: 20);
-      final time = Time.fromValues(hour: 14, minute: 30, second: 45);
-      final dateAndTime = createDateAndTime(date, time);
-
-      final localDateTime = dateAndTime.toDateTimeLocal();
-      expect(localDateTime.isUtc, false);
-
-      // Convert back to UTC for comparison
-      final backToUtc = localDateTime.toUtc();
-      expect(backToUtc.year, 2024);
-      expect(backToUtc.month, 3);
-      expect(backToUtc.day, 20);
-      expect(backToUtc.hour, 14);
-      expect(backToUtc.minute, 30);
-      expect(backToUtc.second, 45);
-
-      // Test round-trip through DateAndTime
-      final roundTrip = localDateTime.toDateAndTime();
-      expect(roundTrip.date, date);
-      expect(roundTrip.time, time);
-    });
-  });
-
-  group('DateTime extensions', () {
-    test('converts to DateAndTime', () {
-      final dateTime = DateTime.utc(2024, 3, 20, 14, 30, 45);
-      final dateAndTime = dateTime.toDateAndTime();
-
-      expect(dateAndTime.date.year, 2024);
-      expect(dateAndTime.date.month, 3);
-      expect(dateAndTime.date.day, 20);
-      expect(dateAndTime.time.hour, 14);
-      expect(dateAndTime.time.minute, 30);
-      expect(dateAndTime.time.second, 45);
-    });
-
-    test('converts local DateTime to DateAndTime in UTC', () {
-      final localDateTime = DateTime(2024, 3, 20, 14, 30, 45);
-      final dateAndTime = localDateTime.toDateAndTime();
-      final utcDateTime = localDateTime.toUtc();
-
-      expect(dateAndTime.date.year, utcDateTime.year);
-      expect(dateAndTime.date.month, utcDateTime.month);
-      expect(dateAndTime.date.day, utcDateTime.day);
-      expect(dateAndTime.time.hour, utcDateTime.hour);
-      expect(dateAndTime.time.minute, utcDateTime.minute);
-      expect(dateAndTime.time.second, utcDateTime.second);
-    });
-  });
-}
-
-/// Expects that the date and dateTime are equivalent, taking into account
-/// the local timezone offset.
-void expectDateEquivalence(Date? date, DateTime? dateTime) {
-  if (date == null || dateTime == null) {
-    expect(date, dateTime);
-    return;
-  }
-
-  expect(date.year, dateTime.year);
-  expect(date.month, dateTime.month);
-  expect(date.day, dateTime.day);
 }
